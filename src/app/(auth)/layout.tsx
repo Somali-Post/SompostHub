@@ -19,12 +19,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <div className="relative z-10 flex flex-col h-full justify-center pl-2">
           <div className="flex flex-col items-start mb-10">
-            <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_20px_40px_rgba(0,0,0,0.4)] border-2 border-white/10 ring-1 ring-white/20 transform hover:scale-105 transition-transform duration-500">
+            <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-white/20 transform hover:scale-105 transition-transform duration-500">
               <Image
                 src="/logos/logo.png"
                 alt="Somali Post Logo"
-                width={60}
-                height={60}
+                width={90}
+                height={90}
                 className="object-contain drop-shadow-md"
                 priority
               />

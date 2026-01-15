@@ -11,8 +11,19 @@ export default function AdminDashboard() {
           <p className="text-slate-500">Real-time status overview.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50">
+          <button
+            onClick={() => alert('Exporting Audit Log to CSV...')}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50"
+          >
             Export Audit
+          </button>
+          <button
+            onClick={() => {
+              window.location.href = '/scan';
+            }}
+            className="px-4 py-2 bg-auth-sidebarFrom text-white rounded-lg text-sm font-bold shadow-md hover:bg-slate-800"
+          >
+            Manifest Entry
           </button>
         </div>
       </div>
