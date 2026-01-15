@@ -17,36 +17,36 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </svg>
         </div>
 
-        <div className="relative z-10 flex flex-col h-full justify-center">
-          <div className="flex flex-col items-center mb-12">
-            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-4 border-white/10 ring-1 ring-white/20 transform hover:scale-105 transition-transform duration-500">
+        <div className="relative z-10 flex flex-col h-full justify-center pl-2">
+          <div className="flex flex-col items-start mb-10">
+            <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_20px_40px_rgba(0,0,0,0.4)] border-2 border-white/10 ring-1 ring-white/20 transform hover:scale-105 transition-transform duration-500">
               <Image
                 src="/logos/logo.png"
                 alt="Somali Post Logo"
-                width={70}
-                height={70}
+                width={60}
+                height={60}
                 className="object-contain drop-shadow-md"
                 priority
               />
             </div>
 
-            <h1 className="text-4xl font-bold mb-2 text-center">Somali Post</h1>
-            <h2 className="text-xl font-light opacity-90 uppercase tracking-[0.2em] text-center">
+            <h1 className="text-4xl font-bold mb-2 tracking-tight">Somali Post</h1>
+            <h2 className="text-lg font-medium opacity-80 uppercase tracking-[0.25em]">
               Employee Hub
             </h2>
           </div>
 
-          <div className="w-20 h-1.5 bg-auth-accent rounded-full mb-8" />
+          <div className="w-16 h-1.5 bg-auth-accent rounded-full mb-8"></div>
 
           <div className="space-y-5 text-lg leading-relaxed text-white/90 max-w-lg">
             <p className="font-semibold text-xl text-white">
               Welcome to your new digital partner.
             </p>
-            <p className="text-base opacity-80">
+            <p className="text-base opacity-80 font-light leading-7">
               This Hub replaces paperwork with instant scanning, speeds up delivery with
               simple photo proof, and keeps the whole team connected.
             </p>
-            <p className="text-base opacity-80">
+            <p className="text-base opacity-80 font-light leading-7">
               We built this to make your job{" "}
               <strong>faster, easier, and error-free</strong> so you can focus on
               what matters.
@@ -54,12 +54,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        <div className="relative z-10 mt-8">
+        <div className="relative z-10 mt-8 pl-2">
           <div className="flex items-center gap-2 text-sm font-medium text-white/60">
             <ShieldCheck className="text-auth-accent w-5 h-5" />
             <span>Official Government Portal</span>
           </div>
-          <p className="text-xs text-white/30 mt-2">
+          <p className="text-[10px] text-white/30 mt-2 tracking-wide">
             © 2024 Somali Post Operations. All rights reserved.
           </p>
         </div>

@@ -1,23 +1,28 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Settings } from "lucide-react";
-import { NAV_SECTIONS } from "@/config/navigation";
-import Image from "next/image";
-import clsx from "clsx";
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight, Settings, LogOut } from 'lucide-react';
+import { NAV_SECTIONS } from '@/config/navigation';
+import Image from 'next/image';
+import clsx from 'clsx';
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
-  const userRole = "admin";
+  const router = useRouter();
+  const userRole = 'ADMIN';
+
+  const handleLogout = async () => {
+    router.push('/login');
+  };
 
   return (
     <aside
       className={clsx(
-        "relative flex flex-col h-screen transition-all duration-300 ease-in-out bg-gradient-to-br from-auth-sidebarFrom to-auth-sidebarTo text-white shadow-xl z-50",
-        isCollapsed ? "w-20" : "w-72"
+        'relative flex flex-col h-screen transition-all duration-300 ease-in-out bg-gradient-to-br from-auth-sidebarFrom to-auth-sidebarTo text-white shadow-xl z-50',
+        isCollapsed ? 'w-20' : 'w-72'
       )}
     >
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -34,14 +39,14 @@ export default function Sidebar() {
       <div className="relative z-10 flex flex-col h-full">
         <div
           className={clsx(
-            "flex flex-col items-center justify-center transition-all duration-300 border-b border-white/10 relative overflow-hidden",
-            isCollapsed ? "h-20" : "h-48"
+            'flex flex-col items-center justify-center transition-all duration-300 border-b border-white/10 relative overflow-hidden',
+            isCollapsed ? 'h-20' : 'h-48'
           )}
         >
           <div
             className={clsx(
-              "relative transition-all duration-300 ease-in-out",
-              isCollapsed ? "w-10 h-10" : "w-28 h-28 mb-4"
+              'relative transition-all duration-300 ease-in-out',
+              isCollapsed ? 'w-10 h-10' : 'w-28 h-28 mb-4'
             )}
           >
             <Image
@@ -50,14 +55,13 @@ export default function Sidebar() {
               fill
               className="object-contain"
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="33vw"
             />
           </div>
-
           <div
             className={clsx(
-              "text-center transition-all duration-300 absolute bottom-6 w-full",
-              isCollapsed ? "opacity-0 translate-y-4 pointer-events-none" : "opacity-100 translate-y-0"
+              'text-center transition-all duration-300 absolute bottom-6 w-full',
+              isCollapsed ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0'
             )}
           >
             <span className="block font-bold text-xl leading-none tracking-tight whitespace-nowrap">
@@ -75,7 +79,6 @@ export default function Sidebar() {
               (item) => !item.roles || item.roles.includes(userRole)
             );
             if (visibleItems.length === 0) return null;
-
             return (
               <div key={section.title}>
                 {!isCollapsed && (
@@ -91,27 +94,27 @@ export default function Sidebar() {
                         key={item.href}
                         href={item.href}
                         className={clsx(
-                          "flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative",
+                          'flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative',
                           isActive
-                            ? "bg-white text-auth-sidebarFrom shadow-lg font-bold"
-                            : "text-white/80 hover:bg-white/10 hover:text-white",
-                          isCollapsed && "justify-center"
+                            ? 'bg-white text-auth-sidebarFrom shadow-lg font-bold'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white',
+                          isCollapsed && 'justify-center'
                         )}
                         title={isCollapsed ? item.label : undefined}
                       >
                         <item.icon
                           size={22}
                           className={clsx(
-                            "shrink-0",
+                            'shrink-0',
                             isActive
-                              ? "text-auth-sidebarFrom"
-                              : "text-white/70 group-hover:text-white"
+                              ? 'text-auth-sidebarFrom'
+                              : 'text-white/70 group-hover:text-white'
                           )}
                         />
                         <span
                           className={clsx(
-                            "text-sm transition-all duration-300 overflow-hidden whitespace-nowrap",
-                            isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                            'text-sm transition-all duration-300 overflow-hidden whitespace-nowrap',
+                            isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                           )}
                         >
                           {item.label}
@@ -130,15 +133,15 @@ export default function Sidebar() {
             <Link
               href="/settings"
               className={clsx(
-                "flex items-center gap-3 text-white/70 hover:text-white transition-colors",
-                isCollapsed && "justify-center"
+                'flex items-center gap-3 text-white/70 hover:text-white transition-colors',
+                isCollapsed && 'justify-center'
               )}
             >
               <Settings size={20} className="shrink-0" />
               <span
                 className={clsx(
-                  "text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap",
-                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                  'text-sm font-medium transition-all duration-300 overflow-hidden whitespace-nowrap',
+                  isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
                 Settings
@@ -148,8 +151,8 @@ export default function Sidebar() {
             <Link
               href="/profile"
               className={clsx(
-                "flex items-center gap-3 pt-4 border-t border-white/10",
-                isCollapsed && "justify-center"
+                'flex items-center gap-3 pt-4 border-t border-white/10',
+                isCollapsed && 'justify-center'
               )}
             >
               <div className="relative shrink-0">
@@ -161,21 +164,37 @@ export default function Sidebar() {
                     height={40}
                   />
                 </div>
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-auth-sidebarFrom rounded-full" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-auth-sidebarFrom rounded-full"></div>
               </div>
-
               <div
                 className={clsx(
-                  "flex flex-col overflow-hidden transition-all duration-300",
-                  isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                  'flex flex-col overflow-hidden transition-all duration-300',
+                  isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
                 <span className="text-sm font-bold truncate">Abdi Aziz</span>
-                <span className="text-[10px] text-white/60 truncate">
-                  Logistics Coord.
-                </span>
+                <span className="text-[10px] text-white/60 truncate">Logistics Coord.</span>
               </div>
             </Link>
+
+            <button
+              onClick={handleLogout}
+              className={clsx(
+                'flex items-center gap-3 pt-4 border-t border-white/10 text-red-300 hover:text-red-100 transition-colors w-full text-left',
+                isCollapsed && 'justify-center'
+              )}
+              title="Log Out"
+            >
+              <LogOut size={20} className="shrink-0" />
+              <span
+                className={clsx(
+                  'text-sm font-bold transition-all duration-300 overflow-hidden whitespace-nowrap',
+                  isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                )}
+              >
+                Log Out
+              </span>
+            </button>
           </div>
         </div>
 

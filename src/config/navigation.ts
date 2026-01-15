@@ -1,30 +1,62 @@
 import {
-  Barcode,
-  CalendarDays,
   MessageSquare,
-  Package,
+  CheckSquare,
+  ScanBarcode,
+  Box,
   Truck,
-  UserCircle,
+  BookOpen,
+  LayoutDashboard,
+  Inbox,
+  Users,
+  FileText,
+  Settings,
 } from "lucide-react";
 
-export const NAV_SECTIONS = [
+export type NavItem = {
+  label: string;
+  href: string;
+  icon: any;
+  roles?: string[];
+};
+
+export type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+export const NAV_SECTIONS: NavSection[] = [
   {
-    title: "Operations",
+    title: "Work",
     items: [
-      { href: "/chat", label: "Chat", icon: MessageSquare },
-      { href: "/scan", label: "Scan", icon: Barcode },
-      { href: "/tasks", label: "Tasks", icon: CalendarDays },
+      { label: "Messaging", href: "/chat", icon: MessageSquare },
+      { label: "Tasks", href: "/tasks", icon: CheckSquare },
+      { label: "Scan Items", href: "/scan", icon: ScanBarcode },
+      { label: "Tracking", href: "/tracking", icon: Box },
+      { label: "Delivery", href: "/delivery", icon: Truck },
     ],
   },
   {
-    title: "Logistics",
-    items: [
-      { href: "/tracking", label: "Tracking", icon: Package },
-      { href: "/delivery", label: "Delivery", icon: Truck },
-    ],
+    title: "Knowledge",
+    items: [{ label: "Knowledge Base", href: "/knowledge", icon: BookOpen }],
   },
   {
-    title: "Account",
-    items: [{ href: "/profile", label: "Profile", icon: UserCircle }],
+    title: "Admin",
+    items: [
+      {
+        label: "Ops Dashboard",
+        href: "/admin/dashboard",
+        icon: LayoutDashboard,
+        roles: ["ADMIN"],
+      },
+      { label: "Inbox", href: "/admin/inbox", icon: Inbox, roles: ["ADMIN"] },
+      { label: "Staff Mgmt", href: "/admin/users", icon: Users, roles: ["ADMIN"] },
+      { label: "Audit Log", href: "/admin/audit", icon: FileText, roles: ["ADMIN"] },
+      {
+        label: "System Settings",
+        href: "/admin/settings",
+        icon: Settings,
+        roles: ["ADMIN"],
+      },
+    ],
   },
 ];
