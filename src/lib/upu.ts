@@ -1,26 +1,14 @@
-export type UPUData = {
+﻿export type UPUData = {
   isValid: boolean;
-  type: "EMS" | "PARCEL" | "REGISTERED" | "UNKNOWN";
+  type: 'EMS' | 'PARCEL' | 'REGISTERED' | 'UNKNOWN';
   countryCode: string;
   countryName: string;
   serviceIndicator: string;
   serial: string;
 };
 
-export const UPU_EVENT_MAP: Record<string, string> = {
-  EMA: "Posting / Collection",
-  EMB: "Arrival at outward office of exchange",
-  EMC: "Departure from outward office of exchange",
-  EMD: "Arrival at inward office of exchange",
-  EME: "Held by Customs",
-  EMF: "Departure from inward office of exchange",
-  EMG: "Arrival at delivery office",
-  EMH: "Attempted Delivery",
-  EMI: "Final Delivery",
-};
-
 export function parseS10(id: string): UPUData {
-  const cleanId = id.toUpperCase().replace(/\s/g, "");
+  const cleanId = id.toUpperCase().replace(/\s/g, '');
 
   const regex = /^([A-Z]{2})([0-9]{9})([A-Z]{2})$/;
   const match = cleanId.match(regex);
@@ -28,34 +16,30 @@ export function parseS10(id: string): UPUData {
   if (!match) {
     return {
       isValid: false,
-      type: "UNKNOWN",
-      countryCode: "",
-      countryName: "",
-      serviceIndicator: "",
-      serial: "",
+      type: 'UNKNOWN',
+      countryCode: '',
+      countryName: '',
+      serviceIndicator: '',
+      serial: '',
     };
   }
 
   const [, service, serialFull, country] = match;
 
-  let type: UPUData["type"] = "UNKNOWN";
+  let type: UPUData['type'] = 'UNKNOWN';
   const indicator = service[0];
-  if (indicator === "E") type = "EMS";
-  else if (indicator === "C") type = "PARCEL";
-  else if (indicator === "R" || indicator === "L" || indicator === "U") {
-    type = "REGISTERED";
-  }
+  if (indicator === 'E') type = 'EMS';
+  else if (indicator === 'C') type = 'PARCEL';
+  else if (indicator === 'R' || indicator === 'L' || indicator === 'U') type = 'REGISTERED';
 
   let countryName = country;
   try {
-    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
     countryName = regionNames.of(country) || country;
-  } catch (e) {
-    // Fallback to country code when DisplayNames is unavailable.
-  }
+  } catch (e) {}
 
   const weights = [8, 6, 4, 2, 3, 5, 9, 7];
-  const digits = serialFull.split("").map(Number);
+  const digits = serialFull.split('').map(Number);
   const checkDigit = digits.pop()!;
 
   let sum = 0;
