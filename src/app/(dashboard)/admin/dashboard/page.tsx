@@ -1,8 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { TrendingUp, Package, Users, CheckCircle } from 'lucide-react';
+import { CardSkeleton } from '@/components/ui/skeletons';
 
 export default function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="flex flex-col gap-6 w-full h-full overflow-y-auto p-6 md:p-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
@@ -29,10 +38,41 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 shrink-0">
-        <StatCard title="Total Volume" value="--" unit="pcs" icon={<Package className="text-auth-button" />} />
-        <StatCard title="Total Weight" value="--" unit="kg" icon={<TrendingUp className="text-amber-500" />} />
-        <StatCard title="Active Staff" value="--" unit="Online" icon={<Users className="text-blue-500" />} />
-        <StatCard title="System Health" value="100%" unit="Uptime" icon={<CheckCircle className="text-green-500" />} />
+        {loading ? (
+          <>
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Total Volume"
+              value="14,822"
+              unit="pcs"
+              icon={<Package className="text-auth-button" />}
+            />
+            <StatCard
+              title="Total Weight"
+              value="4.2"
+              unit="Tons"
+              icon={<TrendingUp className="text-amber-500" />}
+            />
+            <StatCard
+              title="Active Staff"
+              value="104"
+              unit="Online"
+              icon={<Users className="text-blue-500" />}
+            />
+            <StatCard
+              title="System Health"
+              value="99.9%"
+              unit="Uptime"
+              icon={<CheckCircle className="text-green-500" />}
+            />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 min-h-0">
@@ -103,7 +143,7 @@ export default function AdminDashboard() {
 
 function StatCard({ title, value, unit, icon }: any) {
   return (
-    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm animate-in fade-in duration-500">
       <div className="flex justify-between items-start mb-2">
         <div className="p-2 bg-slate-50 rounded-lg">{icon}</div>
       </div>

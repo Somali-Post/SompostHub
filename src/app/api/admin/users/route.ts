@@ -44,6 +44,12 @@ export async function POST(req: Request) {
         jobTitle: role === 'ADMIN' ? 'Administrator' : 'Staff Member',
         email: role === 'ADMIN' ? `${username}@somalipost.gov.so` : undefined,
       },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+      },
     });
 
     return NextResponse.json({ success: true, user: newUser });

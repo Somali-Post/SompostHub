@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Filter, Plus, Lock, User, X, Check } from 'lucide-react';
 
 export default function StaffManagementPage() {
+  const [users, setUsers] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newName, setNewName] = useState('');
@@ -11,6 +12,18 @@ export default function StaffManagementPage() {
   const [newRole, setNewRole] = useState('OFFICE_STAFF');
   const [newPhone, setNewPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const fetchUsers = async () => {
+    const res = await fetch('/api/admin/users/list');
+    if (res.ok) {
+      const data = await res.json();
+      setUsers(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleCreateUser = async () => {
     setIsLoading(true);
@@ -30,6 +43,7 @@ export default function StaffManagementPage() {
         setIsDrawerOpen(false);
         setNewName('');
         setNewUsername('');
+        fetchUsers();
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to create user');
@@ -86,66 +100,58 @@ export default function StaffManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 text-xs">
-                        AA
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-9 w-9 overflow-hidden rounded-full bg-slate-100 font-bold text-slate-600">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.fullName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-xs">
+                              {user.fullName?.[0]}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900">{user.fullName}</p>
+                          <p className="text-xs text-slate-500">@{user.username}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-900">Abdi Aziz</p>
-                        <p className="text-xs text-slate-500">@abdi</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold border border-blue-100">
-                      STAFF
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="flex items-center gap-1.5 text-green-600 font-bold text-xs">
-                      <span className="w-2 h-2 rounded-full bg-green-500"></span> Active
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => setSelectedUser({ name: 'Abdi Aziz', id: '1' })}
-                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Reset PIN"
-                    >
-                      <Lock size={16} />
-                    </button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 text-xs">
-                        SA
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900">Said Ahmed</p>
-                        <p className="text-xs text-slate-500">@admin</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs font-bold border border-purple-100">
-                      ADMIN
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="flex items-center gap-1.5 text-green-600 font-bold text-xs">
-                      <span className="w-2 h-2 rounded-full bg-green-500"></span> Active
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-slate-300 cursor-not-allowed">
-                      <Lock size={16} />
-                    </button>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`rounded border px-2 py-1 text-xs font-bold ${
+                          user.role === 'ADMIN'
+                            ? 'border-purple-100 bg-purple-50 text-purple-700'
+                            : user.role === 'DELIVERY'
+                              ? 'border-orange-100 bg-orange-50 text-orange-700'
+                              : 'border-blue-100 bg-blue-50 text-blue-700'
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-green-600">
+                        <span className="h-2 w-2 rounded-full bg-green-500"></span> Active
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => setSelectedUser({ name: user.fullName, id: user.id })}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Reset PIN"
+                      >
+                        <Lock size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

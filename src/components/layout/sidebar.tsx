@@ -26,7 +26,9 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
+    router.refresh();
   };
 
   const userRole = user?.role || 'OFFICE_STAFF';

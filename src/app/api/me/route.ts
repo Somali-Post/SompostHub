@@ -53,6 +53,16 @@ export async function PUT(req: Request) {
         location: data.location,
         avatar: data.avatar,
       },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        role: true,
+        email: true,
+        phone: true,
+        location: true,
+        avatar: true,
+      },
     });
 
     return NextResponse.json(updatedUser);

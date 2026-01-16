@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const SECRET_KEY = new TextEncoder().encode("super-secret-key-change-this-later");
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "fallback-dev-secret");
 
 export async function signToken(payload: any) {
   return await new SignJWT(payload)
