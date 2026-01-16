@@ -1,4 +1,7 @@
-import { Bell, Search } from "lucide-react";
+'use client';
+
+import { Search } from 'lucide-react';
+import NotificationDropdown from './notification-dropdown';
 
 export default function Topbar() {
   return (
@@ -18,9 +21,7 @@ export default function Topbar() {
           <Search size={16} />
           <span className="text-xs">Search</span>
         </div>
-        <button className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-auth-button">
-          <Bell size={16} />
-        </button>
+        <NotificationDropdown />
       </div>
     </header>
   );

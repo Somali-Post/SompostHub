@@ -5,6 +5,7 @@ import {
   Box,
   Truck,
   BookOpen,
+  Bell,
   LayoutDashboard,
   Inbox,
   Users,
@@ -32,6 +33,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Scan Items", href: "/scan", icon: ScanBarcode },
       { label: "Tracking", href: "/tracking", icon: Box },
       { label: "Delivery", href: "/delivery", icon: Truck },
+      { label: "Notifications", href: "/notifications", icon: Bell },
     ],
   },
   {
