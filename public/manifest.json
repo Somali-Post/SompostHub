@@ -1,0 +1,21 @@
+﻿{
+  "name": "Somali Post Staff Hub",
+  "short_name": "Post Hub",
+  "description": "Internal operations portal for Somali Post",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a3a44",
+  "theme_color": "#1a3a44",
+  "icons": [
+    {
+      "src": "/logos/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logos/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

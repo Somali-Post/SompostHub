@@ -7,6 +7,8 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Somali Post Staff Hub",
   description: "Internal operational portal",
+  manifest: "/manifest.json",
+  themeColor: "#1a3a44",
 };
 
 export default function RootLayout({
