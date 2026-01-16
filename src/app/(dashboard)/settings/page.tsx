@@ -1,11 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Bell, Shield, Server, Save } from 'lucide-react';
+import { User, Bell, Shield, Server } from 'lucide-react';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
+  const [oldPass, setOldPass] = useState('');
+  const [newPass, setNewPass] = useState('');
   const userRole = 'ADMIN';
+
+  const handleChangePassword = async () => {
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Password updated successfully!');
+        setOldPass('');
+        setNewPass('');
+      } else {
+        alert(data.error);
+      }
+    } catch (e) {
+      alert('Connection Error');
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -55,6 +76,43 @@ export default function SettingsPage() {
                   <option>Dark Mode</option>
                   <option>System Default</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-6">
+              <h3 className="font-bold text-slate-900 mb-4">Security</h3>
+              <div className="space-y-4 max-w-md">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={oldPass}
+                    onChange={(e) => setOldPass(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Min 8 chars, 1 uppercase, 1 number, 1 special char.
+                  </p>
+                </div>
+                <button
+                  onClick={handleChangePassword}
+                  className="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800"
+                >
+                  Update Password
+                </button>
               </div>
             </div>
           </div>

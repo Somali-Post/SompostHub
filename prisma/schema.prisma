@@ -24,6 +24,19 @@ model User {
   avatar    String?
   pinMustChange Boolean @default(false)
 
+  scans Scan[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Scan {
+  id        String   @id @default(cuid())
+  barcode   String
+  weight    Float
+  type      String
+  origin    String
+  scannerId String
+  scanner   User     @relation(fields: [scannerId], references: [id])
+  createdAt DateTime @default(now())
 }

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { getSession } from '@/lib/auth';
 
+const MASTER_ADMINS = ['Kal', 'Abs'];
+
 export async function POST(req: Request) {
   try {
     const session = await getSession();
@@ -12,6 +14,18 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { fullName, username, role, phone } = body;
+
+    if (role === 'ADMIN') {
+      if (!MASTER_ADMINS.includes(session.username as string)) {
+        return NextResponse.json(
+          {
+            error:
+              'Permission Denied. Only Master Admins (Kal/Abs) can create new Administrators.',
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     if (!fullName || !username || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

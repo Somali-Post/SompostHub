@@ -1,165 +1,334 @@
-"use client";
+﻿'use client';
 
-import { useState } from "react";
+import { useState, useRef } from 'react';
 import {
-  ArrowRight,
-  CheckCircle,
-  History,
-  Package,
   ScanBarcode,
-} from "lucide-react";
+  Camera,
+  CheckCircle,
+  Package,
+  Scale,
+  Trash2,
+  ArrowRight,
+  Save,
+  RotateCcw,
+} from 'lucide-react';
+
+type ScannedItem = {
+  id: string;
+  barcode: string;
+  type: string;
+  origin: string;
+  weight: string;
+  timestamp: Date;
+  status: 'valid' | 'invalid';
+};
 
 export default function ScanPage() {
-  const [barcode, setBarcode] = useState("RR123456789SO");
-  const [weight, setWeight] = useState("0.45");
+  const [batch, setBatch] = useState<ScannedItem[]>([]);
+  const [barcodeInput, setBarcodeInput] = useState('');
+  const [weightInput, setWeightInput] = useState('');
+  const [isProcessingImg, setIsProcessingImg] = useState(false);
+  const [scanMode, setScanMode] = useState<'INBOUND' | 'OUTBOUND'>('INBOUND');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const barcodeRef = useRef<HTMLInputElement>(null);
+  const weightRef = useRef<HTMLInputElement>(null);
+
+  const parseBarcode = (code: string) => {
+    const clean = code.toUpperCase().trim();
+    const isS10 = /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(clean);
+
+    let type = 'Unknown';
+    let origin = 'Unknown';
+
+    if (isS10) {
+      const prefix = clean.substring(0, 2);
+      const suffix = clean.substring(11, 13);
+
+      if (prefix.startsWith('E')) type = 'EMS Express';
+      else if (prefix.startsWith('C')) type = 'Parcel';
+      else if (prefix.startsWith('R')) type = 'Registered Mail';
+      else if (prefix.startsWith('L')) type = 'Untracked Letter';
+
+      origin = suffix;
+    }
+
+    return { barcode: clean, type, origin, status: isS10 ? 'valid' : 'invalid' };
+  };
+
+  const handleBarcodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!barcodeInput) return;
+
+    weightRef.current?.focus();
+  };
+
+  const handleWeightSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!barcodeInput) return;
+
+    const details = parseBarcode(barcodeInput);
+    const newItem: ScannedItem = {
+      id: Date.now().toString(),
+      barcode: details.barcode,
+      type: details.type,
+      origin: details.origin,
+      weight: weightInput || '0.00',
+      timestamp: new Date(),
+      status: details.status as ScannedItem['status'],
+    };
+
+    setBatch([newItem, ...batch]);
+
+    setBarcodeInput('');
+    setWeightInput('');
+    barcodeRef.current?.focus();
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingImg(true);
+
+    setTimeout(() => {
+      const mockResult = 'RR123456789SO';
+      setBarcodeInput(mockResult);
+      setIsProcessingImg(false);
+      weightRef.current?.focus();
+    }, 1500);
+  };
+
+  const removeItem = (id: string) => {
+    setBatch(batch.filter((item) => item.id !== id));
+  };
+
+  const submitBatch = async () => {
+    if (batch.length === 0) return;
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/scan/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: batch }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Success! Saved ${data.count} items.`);
+        setBatch([]);
+      } else {
+        alert('Failed to save batch. Please try again.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Connection Error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-8">
-      <div className="flex flex-col xl:flex-row gap-8 h-[calc(100vh-8rem)]">
-        <div className="flex-1 flex flex-col gap-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              High-Volume Scanning
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Optimize for rapid item processing and UPU S10 verification.
-            </p>
+    <div className="flex flex-col h-full overflow-hidden bg-slate-50">
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shrink-0">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+            <ScanBarcode className="text-auth-button" /> Scan Station
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">
+            Batch ID: <span className="font-mono text-slate-700">#B-9921</span> -
+            <span className="ml-2 text-green-600">Scanner Ready</span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            <button
+              onClick={() => setScanMode('INBOUND')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
+                scanMode === 'INBOUND'
+                  ? 'bg-white text-auth-button shadow-sm'
+                  : 'text-slate-500'
+              }`}
+            >
+              Inbound
+            </button>
+            <button
+              onClick={() => setScanMode('OUTBOUND')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
+                scanMode === 'OUTBOUND'
+                  ? 'bg-white text-auth-button shadow-sm'
+                  : 'text-slate-500'
+              }`}
+            >
+              Outbound
+            </button>
           </div>
-
-          <div className="bg-white p-6 rounded-xl border-2 border-auth-button/50 shadow-sm relative overflow-hidden">
-            <div className="absolute top-3 right-3 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-            <label className="block text-auth-button text-xs font-bold uppercase tracking-widest mb-3">
-              UPU S10 Scan Input (Always Focused)
-            </label>
-            <div className="flex items-center gap-4 bg-slate-50 rounded-lg border border-slate-200 p-2">
-              <input
-                type="text"
-                value={barcode}
-                onChange={(e) => setBarcode(e.target.value)}
-                className="bg-transparent border-none focus:ring-0 text-slate-900 text-3xl font-mono font-bold flex-1 px-4 placeholder:text-slate-300 uppercase"
-                placeholder="SCAN BARCODE..."
-                autoFocus
-              />
-              <div className="bg-auth-button/10 text-auth-button p-3 rounded-md">
-                <ScanBarcode size={32} />
-              </div>
-            </div>
-            <div className="mt-4 flex gap-6 text-[10px] text-slate-400 font-bold uppercase">
-              <span className="flex items-center gap-1">
-                <span className="text-auth-button">[ENTER]</span> Process
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="text-auth-button">[ESC]</span> Clear
-              </span>
-            </div>
+          <div className="text-right hidden md:block">
+            <p className="text-xs font-bold text-slate-400 uppercase">Items in Batch</p>
+            <p className="text-2xl font-black text-slate-900 leading-none">{batch.length}</p>
           </div>
+        </div>
+      </div>
 
-          <div className="flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row">
-            <div className="w-full md:w-1/3 bg-slate-100 relative flex items-center justify-center border-r border-slate-100">
-              <Package size={80} className="text-slate-300" />
-              <div className="absolute bottom-4 left-4 bg-auth-button text-white px-2 py-1 text-[10px] font-bold uppercase rounded">
-                Standard Parcel
+      <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
+        <div className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-6">
+          <div className="bg-white p-6 md:p-8 rounded-2xl border-2 border-auth-button/30 shadow-lg relative overflow-hidden">
+            {isProcessingImg && (
+              <div className="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center text-auth-button">
+                <ScanBarcode className="w-12 h-12 animate-pulse mb-2" />
+                <p className="font-bold animate-pulse">Processing Image...</p>
               </div>
-            </div>
+            )}
 
-            <div className="flex-1 p-8 flex flex-col justify-between">
+            <div className="flex flex-col gap-6">
               <div>
-                <p className="text-auth-button text-xs font-bold uppercase tracking-wider mb-1">
-                  Detected Item Type
-                </p>
-                <h2 className="text-slate-900 text-4xl font-black tracking-tighter leading-none mb-6">
-                  REGISTERED MAIL
-                </h2>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                  1. Scan Barcode (or Upload)
+                </label>
+                <div className="flex gap-3">
+                  <form onSubmit={handleBarcodeSubmit} className="flex-1">
+                    <input
+                      ref={barcodeRef}
+                      value={barcodeInput}
+                      onChange={(e) => setBarcodeInput(e.target.value)}
+                      className="w-full h-16 px-6 text-3xl font-mono font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-auth-button focus:ring-4 focus:ring-auth-button/10 outline-none transition-all placeholder:text-slate-300 uppercase"
+                      placeholder="SCAN ID..."
+                      autoFocus
+                    />
+                  </form>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-slate-400 text-[10px] font-bold uppercase">
-                      Destination
-                    </p>
-                    <p className="text-slate-900 text-lg font-bold">
-                      Mogadishu District 4
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400 text-[10px] font-bold uppercase">
-                      Service Level
-                    </p>
-                    <p className="text-slate-900 text-lg font-bold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />{" "}
-                      Priority
-                    </p>
-                  </div>
+                  <label className="w-16 h-16 bg-slate-800 text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-slate-700 active:scale-95 transition-all shadow-md">
+                    <Camera size={28} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
                 </div>
               </div>
 
-              <div className="mt-8 flex items-end gap-6">
-                <div className="flex-1">
-                  <label className="block text-slate-400 text-[10px] font-bold uppercase mb-2">
-                    Weight (kg)
-                  </label>
-                  <div className="flex items-center gap-3">
+              <div
+                className={`transition-all duration-300 ${
+                  barcodeInput ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-2'
+                }`}
+              >
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                  2. Enter Weight (kg)
+                </label>
+                <form onSubmit={handleWeightSubmit} className="flex gap-3">
+                  <div className="relative flex-1">
                     <input
+                      ref={weightRef}
                       type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      className="bg-slate-50 border-2 border-slate-200 focus:border-auth-button rounded-lg text-slate-900 text-4xl font-black w-full px-4 py-2 focus:ring-0"
                       step="0.01"
+                      value={weightInput}
+                      onChange={(e) => setWeightInput(e.target.value)}
+                      className="w-full h-16 pl-6 pr-16 text-3xl font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-auth-button focus:ring-4 focus:ring-auth-button/10 outline-none transition-all"
+                      placeholder="0.00"
                     />
-                    <span className="text-slate-400 text-2xl font-black uppercase">
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
                       KG
                     </span>
                   </div>
-                </div>
-                <button className="flex-1 h-[68px] bg-auth-button hover:bg-auth-buttonHover text-white font-black text-xl rounded-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-auth-button/20">
-                  <span>PROCESS</span>
-                  <ArrowRight strokeWidth={3} />
-                </button>
+                  <button
+                    type="submit"
+                    disabled={!barcodeInput}
+                    className="w-32 bg-auth-button text-white rounded-xl font-bold text-lg shadow-md hover:bg-auth-buttonHover disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+                  >
+                    ADD <ArrowRight size={20} />
+                  </button>
+                </form>
               </div>
             </div>
           </div>
+
+          {batch.length > 0 ? (
+            <div className="bg-white border border-slate-200 rounded-xl p-6 flex items-center gap-6 animate-in slide-in-from-top-4 fade-in duration-300">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center border-4 border-green-100 text-green-600">
+                <CheckCircle size={40} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-green-600 uppercase mb-1">Successfully Added</p>
+                <h2 className="text-3xl font-black text-slate-900 font-mono">
+                  {batch[0].barcode}
+                </h2>
+                <div className="flex gap-4 mt-2 text-sm text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Package size={14} /> {batch[0].type}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Scale size={14} /> {batch[0].weight} kg
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-200 rounded-xl min-h-[200px]">
+              <Package size={48} className="mb-2" />
+              <p className="font-bold">Ready for first scan</p>
+            </div>
+          )}
         </div>
 
-        <div className="w-full xl:w-96 bg-white border border-slate-200 rounded-xl flex flex-col overflow-hidden shadow-sm h-full">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-            <h3 className="font-bold text-slate-700 flex items-center gap-2">
-              <History size={18} className="text-auth-button" /> Recent Activity
-            </h3>
-            <span className="bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded text-[10px] font-bold">
-              BATCH: 124
-            </span>
+        <div className="w-full lg:w-96 bg-white border-l border-slate-200 flex flex-col h-[400px] lg:h-auto shrink-0">
+          <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-700">Current Batch</h3>
+            <button
+              onClick={() => setBatch([])}
+              className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1"
+            >
+              <RotateCcw size={12} /> Clear
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <div className="bg-auth-button/5 border border-auth-button/20 p-3 rounded-lg">
-              <div className="flex justify-between items-start mb-1">
-                <span className="text-auth-button font-mono font-bold text-sm">
-                  RR123456789SO
-                </span>
-                <span className="bg-auth-button text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                  JUST NOW
-                </span>
+            {batch.map((item) => (
+              <div
+                key={item.id}
+                className="group flex justify-between items-center p-3 rounded-lg border border-slate-100 bg-white hover:border-auth-button/30 hover:shadow-sm transition-all"
+              >
+                <div>
+                  <p className="font-mono font-bold text-slate-800">{item.barcode}</p>
+                  <p className="text-[10px] text-slate-500 uppercase">
+                    {item.type} - {item.weight} kg
+                  </p>
+                </div>
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
-              <p className="text-slate-700 text-xs font-medium">
-                Standard Parcel • 1.25 kg
-              </p>
-              <div className="mt-2 flex items-center gap-1 text-[10px] text-green-600 font-bold">
-                <CheckCircle size={12} /> VALIDATED &amp; SORTED
-              </div>
-            </div>
+            ))}
+            {batch.length === 0 && (
+              <p className="text-center text-xs text-slate-400 py-10">No items in batch yet.</p>
+            )}
+          </div>
 
-            <div className="bg-white border border-slate-100 p-3 rounded-lg opacity-75">
-              <div className="flex justify-between items-start mb-1">
-                <span className="text-slate-600 font-mono font-bold text-sm">
-                  EE987654321SO
-                </span>
-                <span className="text-slate-400 text-[10px] font-bold">
-                  2 MIN AGO
-                </span>
-              </div>
-              <p className="text-slate-500 text-xs font-medium">
-                Express Document • 0.20 kg
-              </p>
+          <div className="p-4 border-t border-slate-100 bg-slate-50">
+            <div className="flex justify-between items-center mb-4 text-sm">
+              <span className="text-slate-500">Total Items</span>
+              <span className="font-bold text-slate-900">{batch.length}</span>
             </div>
+            <button
+              onClick={submitBatch}
+              disabled={batch.length === 0 || isSubmitting}
+              className="w-full py-3 bg-auth-sidebarFrom text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <span>Saving...</span>
+              ) : (
+                <>
+                  <Save size={18} /> Submit Batch
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
