@@ -1,15 +1,19 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
-import { User, Bell, Shield, Server } from 'lucide-react';
+import { User, Bell, Shield, Server, Save, Lock } from 'lucide-react';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
-  const [oldPass, setOldPass] = useState('');
-  const [newPass, setNewPass] = useState('');
   const userRole = 'ADMIN';
 
+  const [oldPass, setOldPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [passLoading, setPassLoading] = useState(false);
+
   const handleChangePassword = async () => {
+    if (!oldPass || !newPass) return alert('Please fill in both fields.');
+    setPassLoading(true);
     try {
       const res = await fetch('/api/auth/change-password', {
         method: 'POST',
@@ -17,25 +21,27 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Password updated successfully!');
+        alert('Success! Password updated.');
         setOldPass('');
         setNewPass('');
       } else {
-        alert(data.error);
+        alert(data.error || 'Failed to update password');
       }
     } catch (e) {
       alert('Connection Error');
+    } finally {
+      setPassLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
+    <div className="flex flex-col h-full bg-slate-50 overflow-y-auto">
       <div className="p-8 pb-0">
         <h1 className="text-3xl font-black text-slate-900">Settings</h1>
         <p className="text-slate-500 mt-1">Manage your preferences and system configuration.</p>
       </div>
 
-      <div className="px-8 mt-6 border-b border-slate-200 flex gap-6">
+      <div className="px-8 mt-6 border-b border-slate-200 flex gap-6 shrink-0">
         <TabButton
           id="general"
           label="General"
@@ -50,18 +56,10 @@ export default function SettingsPage() {
           active={activeTab}
           onClick={setActiveTab}
         />
-        {userRole === 'ADMIN' && (
-          <TabButton
-            id="system"
-            label="System"
-            icon={<Server size={18} />}
-            active={activeTab}
-            onClick={setActiveTab}
-          />
-        )}
+        <TabButton id="system" label="System" icon={<Server size={18} />} active={activeTab} onClick={setActiveTab} />
       </div>
 
-      <div className="p-8 max-w-4xl">
+      <div className="p-8 max-w-3xl">
         {activeTab === 'general' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -79,8 +77,10 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-6">
-              <h3 className="font-bold text-slate-900 mb-4">Security</h3>
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Lock size={18} className="text-auth-button" /> Security
+              </h3>
               <div className="space-y-4 max-w-md">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
@@ -90,7 +90,8 @@ export default function SettingsPage() {
                     type="password"
                     value={oldPass}
                     onChange={(e) => setOldPass(e.target.value)}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
+                    placeholder="••••••••"
                   />
                 </div>
                 <div>
@@ -101,24 +102,26 @@ export default function SettingsPage() {
                     type="password"
                     value={newPass}
                     onChange={(e) => setNewPass(e.target.value)}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
+                    placeholder="Min 8 chars, 1 Upper, 1 Number"
                   />
                   <p className="text-[10px] text-slate-400 mt-1">
-                    Min 8 chars, 1 uppercase, 1 number, 1 special char.
+                    Must contain 8+ chars, 1 uppercase, 1 number, 1 special char.
                   </p>
                 </div>
                 <button
                   onClick={handleChangePassword}
-                  className="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800"
+                  disabled={passLoading}
+                  className="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 disabled:opacity-50"
                 >
-                  Update Password
+                  {passLoading ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {activeTab === 'system' && userRole === 'ADMIN' && (
+        {activeTab === 'system' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 text-amber-800">
               <Shield className="shrink-0" />
@@ -127,7 +130,6 @@ export default function SettingsPage() {
                 <p>Changes here affect the entire Somali Post operational network.</p>
               </div>
             </div>
-
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-900 mb-4">Global Configuration</h3>
               <div className="space-y-4">
@@ -140,18 +142,6 @@ export default function SettingsPage() {
                     <input type="checkbox" className="sr-only peer" />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-auth-button"></div>
                   </label>
-                </div>
-
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Force PIN Reset</p>
-                    <p className="text-xs text-slate-500">
-                      Require all staff to change PINs next login.
-                    </p>
-                  </div>
-                  <button className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded hover:bg-slate-200">
-                    Execute
-                  </button>
                 </div>
               </div>
             </div>
