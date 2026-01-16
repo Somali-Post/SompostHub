@@ -163,34 +163,82 @@ export default function ProfilePage() {
                 <label className="text-sm font-semibold text-slate-700">
                   Work Email
                 </label>
-                <input
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm bg-slate-50"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button text-sm font-medium text-slate-900 bg-white"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   Work Phone
                 </label>
-                <input
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm bg-slate-50"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button text-sm font-medium text-slate-900 bg-white"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="flex flex-col gap-1.5 md:col-span-2">
                 <label className="text-sm font-semibold text-slate-700">
                   Office Location
                 </label>
-                <input
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm bg-slate-50"
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button text-sm font-medium text-slate-900 bg-white"
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

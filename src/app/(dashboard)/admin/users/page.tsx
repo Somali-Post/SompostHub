@@ -6,6 +6,40 @@ import { Search, Filter, Plus, Lock, User, X, Check } from 'lucide-react';
 export default function StaffManagementPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [newName, setNewName] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newRole, setNewRole] = useState('OFFICE_STAFF');
+  const [newPhone, setNewPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCreateUser = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: newName,
+          username: newUsername,
+          role: newRole,
+          phone: newPhone,
+        }),
+      });
+
+      if (res.ok) {
+        alert('User Created Successfully! PIN is 0000.');
+        setIsDrawerOpen(false);
+        setNewName('');
+        setNewUsername('');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to create user');
+      }
+    } catch (error) {
+      alert('Connection Error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 h-[calc(100vh-4rem)]">
@@ -184,6 +218,8 @@ export default function StaffManagementPage() {
                   <input
                     className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
                     placeholder="e.g. Jamaal Abdi"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
                   />
                 </div>
                 <div>
@@ -193,14 +229,31 @@ export default function StaffManagementPage() {
                   <input
                     className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
                     placeholder="@username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    Phone
+                  </label>
+                  <input
+                    className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
+                    placeholder="+252 61 000 0000"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label>
-                  <select className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button bg-white">
-                    <option>Staff Member</option>
-                    <option>Administrator</option>
-                    <option>Delivery Driver</option>
+                  <select
+                    className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button bg-white"
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                  >
+                    <option value="OFFICE_STAFF">Staff Member</option>
+                    <option value="ADMIN">Administrator</option>
+                    <option value="DELIVERY">Delivery Driver</option>
                   </select>
                 </div>
               </div>
@@ -220,8 +273,12 @@ export default function StaffManagementPage() {
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
-              <button className="flex-1 bg-auth-button text-white py-3 rounded-lg font-bold text-sm hover:bg-auth-buttonHover shadow-sm">
-                Create User
+              <button
+                onClick={handleCreateUser}
+                disabled={isLoading}
+                className="flex-1 bg-auth-button text-white py-3 rounded-lg font-bold text-sm hover:bg-auth-buttonHover shadow-sm disabled:opacity-50"
+              >
+                {isLoading ? 'Creating...' : 'Create User'}
               </button>
               <button
                 onClick={() => setIsDrawerOpen(false)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Settings, LogOut } from 'lucide-react';
@@ -10,13 +10,26 @@ import clsx from 'clsx';
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const userRole = 'ADMIN';
+
+  useEffect(() => {
+    fetch('/api/me')
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => {
+        if (data) setUser(data);
+      });
+  }, []);
 
   const handleLogout = async () => {
     router.push('/login');
   };
+
+  const userRole = user?.role || 'OFFICE_STAFF';
 
   return (
     <aside
@@ -156,12 +169,15 @@ export default function Sidebar() {
               )}
             >
               <div className="relative shrink-0">
-                <div className="w-10 h-10 rounded-full bg-auth-accent border-2 border-auth-accent overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-auth-accent border-2 border-auth-accent overflow-hidden relative">
                   <Image
-                    src="https://ui-avatars.com/api/?name=Abdi+Aziz&background=C2A44D&color=fff"
+                    src={
+                      user?.avatar ||
+                      `https://ui-avatars.com/api/?name=${user?.fullName || 'User'}&background=C2A44D&color=fff`
+                    }
                     alt="Profile"
-                    width={40}
-                    height={40}
+                    fill
+                    className="object-cover"
                   />
                 </div>
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-auth-sidebarFrom rounded-full"></div>
@@ -172,8 +188,10 @@ export default function Sidebar() {
                   isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
-                <span className="text-sm font-bold truncate">Abdi Aziz</span>
-                <span className="text-[10px] text-white/60 truncate">Logistics Coord.</span>
+                <span className="text-sm font-bold truncate">{user?.fullName || 'Loading...'}</span>
+                <span className="text-[10px] text-white/60 truncate">
+                  {user?.jobTitle || user?.role}
+                </span>
               </div>
             </Link>
 

@@ -18,12 +18,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg shadow-black/20 shrink-0">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg shadow-black/20 shrink-0">
             <Image
               src="/logos/logo.png"
               alt="Somali Post Logo"
-              width={56}
-              height={56}
+              width={64}
+              height={64}
               className="object-contain"
               priority
             />
