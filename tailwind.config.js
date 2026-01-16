@@ -1,9 +1,27 @@
 /** @type {import("tailwindcss").Config} */
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  darkMode: ["class"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
       colors: {
+        primary: {
+          DEFAULT: "#2e7585",
+          foreground: "#ffffff",
+          dark: "#245f6c",
+        },
+        navy: {
+          DEFAULT: "#1a3a44",
+          foreground: "#ffffff",
+        },
+        accent: {
+          DEFAULT: "#C2A44D",
+          foreground: "#ffffff",
+        },
         mobile: {
           bg: "var(--m-bg)",
           surface: "var(--m-surface)",
@@ -30,7 +48,10 @@ module.exports = {
           bg: "#f3f5f7",
         },
       },
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+      },
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/forms"), require("tailwindcss-animate")],
 };

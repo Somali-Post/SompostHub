@@ -84,7 +84,10 @@ export default function StaffManagementPage() {
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-auth-button/20"
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-white">
+            <button
+              onClick={() => alert('Feature coming soon')}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-white"
+            >
               <Filter size={16} /> Role
             </button>
           </div>
@@ -176,7 +179,10 @@ export default function StaffManagementPage() {
             </div>
 
             <div className="flex flex-col gap-2 mt-auto">
-              <button className="w-full py-2 bg-auth-button text-white font-bold rounded-lg hover:bg-auth-buttonHover">
+              <button
+                onClick={() => alert('Feature coming soon')}
+                className="w-full py-2 bg-auth-button text-white font-bold rounded-lg hover:bg-auth-buttonHover"
+              >
                 Confirm Reset
               </button>
               <button

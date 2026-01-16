@@ -127,10 +127,16 @@ export default function AdminDashboard() {
               Quick Actions
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-3 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-auth-button hover:text-auth-button transition-colors">
+              <button
+                onClick={() => alert('Feature coming soon')}
+                className="p-3 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-auth-button hover:text-auth-button transition-colors"
+              >
                 New Staff
               </button>
-              <button className="p-3 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-auth-button hover:text-auth-button transition-colors">
+              <button
+                onClick={() => alert('Feature coming soon')}
+                className="p-3 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-auth-button hover:text-auth-button transition-colors"
+              >
                 System Status
               </button>
             </div>

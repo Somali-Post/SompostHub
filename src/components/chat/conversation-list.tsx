@@ -9,7 +9,7 @@ const GROUPS = [
     time: "14:02",
     preview: "Ayan: The parcel tracking is updated...",
     icon: "L",
-    color: "bg-blue-600",
+    color: "bg-navy",
     active: true,
   },
   {
@@ -18,7 +18,7 @@ const GROUPS = [
     time: "12:45",
     preview: "Omar: Van 4 needs maintenance...",
     icon: "D",
-    color: "bg-emerald-600",
+    color: "bg-primary",
     active: false,
   },
   {
@@ -27,7 +27,7 @@ const GROUPS = [
     time: "Yesterday",
     preview: "Director: Meeting at 3 PM",
     icon: "M",
-    color: "bg-purple-600",
+    color: "bg-accent",
     active: false,
   },
   {

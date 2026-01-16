@@ -14,18 +14,15 @@ export async function POST(req: Request) {
     let user = null;
 
     if (isStaffLogin) {
-      console.log(`Attempting Staff Login for: ${body.username}`);
       user = await prisma.user.findUnique({
         where: { username: body.username },
       });
 
       if (!user) {
-        console.log("User not found");
         return NextResponse.json({ error: "User not found" }, { status: 401 });
       }
 
       if (!user.pin) {
-        console.log("User has no PIN set");
         return NextResponse.json(
           { error: "Account setup incomplete" },
           { status: 401 }
@@ -34,18 +31,15 @@ export async function POST(req: Request) {
 
       const pinValid = await compare(body.pin, user.pin);
       if (!pinValid) {
-        console.log("Invalid PIN");
         return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });
       }
     } else if (isAdminLogin) {
       const email = body.adminEmail || body.email;
       const password = body.adminPassword || body.password;
 
-      console.log(`Attempting Admin Login for: ${email}`);
       user = await prisma.user.findUnique({ where: { email } });
 
       if (!user || !user.password || !(await compare(password, user.password))) {
-        console.log("Invalid Admin Credentials");
         return NextResponse.json(
           { error: "Invalid Email or Password" },
           { status: 401 }

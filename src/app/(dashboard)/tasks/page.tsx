@@ -23,10 +23,16 @@ export default function TasksPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button className="flex h-9 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold bg-white text-slate-700 hover:bg-slate-50">
+            <button
+              onClick={() => alert('Feature coming soon')}
+              className="flex h-9 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold bg-white text-slate-700 hover:bg-slate-50"
+            >
               <Filter size={16} /> Filter
             </button>
-            <button className="flex h-9 items-center gap-2 rounded-lg bg-auth-button px-3 text-sm font-semibold text-white hover:bg-auth-buttonHover shadow-sm">
+            <button
+              onClick={() => alert('Feature coming soon')}
+              className="flex h-9 items-center gap-2 rounded-lg bg-auth-button px-3 text-sm font-semibold text-white hover:bg-auth-buttonHover shadow-sm"
+            >
               <Plus size={16} /> New Task
             </button>
           </div>
@@ -36,10 +42,16 @@ export default function TasksPage() {
           <div className="w-[400px] flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shrink-0">
             <div className="p-4 border-b border-slate-100 bg-slate-50">
               <div className="flex bg-slate-200 p-1 rounded-lg">
-                <button className="flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm text-slate-900">
+                <button
+                  onClick={() => alert('Feature coming soon')}
+                  className="flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm text-slate-900"
+                >
                   My Tasks
                 </button>
-                <button className="flex-1 py-1 text-xs font-bold text-slate-500 hover:text-slate-700">
+                <button
+                  onClick={() => alert('Feature coming soon')}
+                  className="flex-1 py-1 text-xs font-bold text-slate-500 hover:text-slate-700"
+                >
                   Team Tasks
                 </button>
               </div>

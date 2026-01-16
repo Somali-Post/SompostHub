@@ -21,7 +21,10 @@ export default function NotificationCenter() {
           <h1 className="text-3xl font-black text-slate-900">Notification Center</h1>
           <p className="mt-1 text-sm text-slate-500">Manage your alerts and system updates.</p>
         </div>
-        <button className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50">
+        <button
+          onClick={() => alert('Feature coming soon')}
+          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50"
+        >
           <Trash2 size={16} /> Clear All
         </button>
       </div>
@@ -67,6 +70,7 @@ export default function NotificationCenter() {
           </div>
           <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
             <button
+              onClick={() => alert('Feature coming soon')}
               className="rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-primary"
               title="Mark as Read"
             >
@@ -95,6 +99,7 @@ export default function NotificationCenter() {
           </div>
           <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
             <button
+              onClick={() => alert('Feature coming soon')}
               className="rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-primary"
               title="Mark as Read"
             >
