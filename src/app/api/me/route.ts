@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
@@ -31,10 +31,7 @@ export async function GET() {
     return NextResponse.json(user);
   } catch (error) {
     console.error("PROFILE GET ERROR:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -50,6 +47,7 @@ export async function PUT(req: Request) {
     const updatedUser = await prisma.user.update({
       where: { id: session.id as string },
       data: {
+        fullName: data.fullName,
         email: data.email,
         phone: data.phone,
         location: data.location,
@@ -60,9 +58,6 @@ export async function PUT(req: Request) {
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("PROFILE UPDATE ERROR:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
