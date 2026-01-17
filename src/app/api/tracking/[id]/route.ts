@@ -21,14 +21,35 @@ export async function GET(
     
     const res = await fetch(url, {
       cache: 'no-store',
-      headers: { 'User-Agent': 'SomaliPost/1.0' }
+      headers: { 'User-Agent': 'SomaliPost/1.0' },
     });
 
     if (!res.ok) {
-      throw new Error(`Upstream API Error: ${res.status}`);
+      return NextResponse.json(
+        { error: `Tracking provider error (${res.status})` },
+        { status: 502 }
+      );
     }
 
-    const rawData = await res.json();
+    const rawText = await res.text();
+    if (!rawText.trim()) {
+      return NextResponse.json({
+        found: false,
+        trackingId: cleanId,
+        message: 'No tracking data returned.',
+      });
+    }
+
+    let rawData: unknown;
+    try {
+      rawData = JSON.parse(rawText);
+    } catch (parseError) {
+      return NextResponse.json({
+        found: false,
+        trackingId: cleanId,
+        message: 'Tracking response format not supported.',
+      });
+    }
 
     // 2. Handle "Not Found" (API returns literal "1")
     if (rawData === '1' || !rawData) {
@@ -41,8 +62,8 @@ export async function GET(
 
     // 3. Normalize Data
     const records = Array.isArray(rawData) ? rawData : [rawData];
-    
-    const events = records.map((record: any) => {
+
+    const events = (records as any[]).map((record: any) => {
       const date = parsePTTDate(record.EventDate);
       const info = getEventInfo(record.EventCode);
       
