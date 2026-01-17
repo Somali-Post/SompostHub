@@ -25,6 +25,9 @@ model User {
   pinMustChange Boolean @default(false)
 
   scans Scan[]
+  tasks Task[]
+  notifications Notification[]
+  messages Message[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,5 +41,44 @@ model Scan {
   origin    String
   scannerId String
   scanner   User     @relation(fields: [scannerId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  priority    String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  dueDate     DateTime?
+
+  assignedToId String?
+  assignedTo   User?    @relation(fields: [assignedToId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, ALERT, TASK, SECURITY
+  isRead    Boolean  @default(false)
+
+  userId    String?  // If null, it's a system-wide alert
+  user      User?    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  channel   String   @default("general") // logistics, delivery, management
+
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+
   createdAt DateTime @default(now())
 }
