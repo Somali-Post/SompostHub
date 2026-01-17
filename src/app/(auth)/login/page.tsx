@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Info, Delete, Check, ArrowRight, User, Lock, Mail } from 'lucide-react';
+import { Delete, Check, ArrowRight, User, Lock, Mail, ShieldCheck, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import PinKeypad from '@/components/auth/pin-keypad';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'staff' | 'admin'>('staff');
 
   const [staffUsername, setStaffUsername] = useState('');
@@ -53,8 +55,8 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="md:hidden min-h-screen flex flex-col bg-gradient-to-b from-[#1a3a44] to-[#2e7585] overflow-hidden">
-        <div className="h-[35vh] flex flex-col items-center justify-center relative p-6">
+      <div className="md:hidden fixed inset-0 flex flex-col bg-[#1a3a44]">
+        <div className="h-[30%] flex flex-col items-center justify-center relative">
           <div
             className="absolute inset-0 opacity-10"
             style={{
@@ -63,96 +65,114 @@ export default function LoginPage() {
             }}
           ></div>
 
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl mb-4 ring-4 ring-white/10">
-              <Image src="/logos/logo.png" alt="Logo" width={60} height={60} className="object-contain" priority />
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/10">
+              <Image src="/logos/logo.png" alt="Somali Post" width={50} height={50} className="object-contain" priority />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Somali Post</h1>
-            <p className="text-xs text-[#C2A44D] font-bold uppercase tracking-[0.2em] mt-1">
-              Employee Hub
-            </p>
+            <div className="text-center text-white">
+              <h1 className="text-2xl font-black tracking-tight leading-none">Somali Post</h1>
+              <p className="text-[10px] text-[#C2A44D] font-bold uppercase tracking-[0.25em] mt-1.5">
+                Employee Hub
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 bg-white rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden">
-          <div className="flex justify-center pt-8 pb-6 px-8">
-            <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full max-w-xs">
+        <div className="h-[70%] bg-white rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
+          <div className="flex justify-center pt-8 pb-6">
+            <div className="flex bg-slate-100 p-1.5 rounded-2xl w-72 shadow-inner">
               <button
                 onClick={() => setActiveTab('staff')}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                  activeTab === 'staff' ? 'bg-white text-[#1a3a44] shadow-md' : 'text-slate-400'
+                className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 ${
+                  activeTab === 'staff'
+                    ? 'bg-white text-[#1a3a44] shadow-md transform scale-105'
+                    : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
-                Staff
+                STAFF LOGIN
               </button>
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                  activeTab === 'admin' ? 'bg-white text-[#1a3a44] shadow-md' : 'text-slate-400'
+                className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 ${
+                  activeTab === 'admin'
+                    ? 'bg-white text-[#1a3a44] shadow-md transform scale-105'
+                    : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
-                Admin
+                ADMIN LOGIN
               </button>
             </div>
           </div>
 
-          <div className="flex-1 px-8 pb-8 overflow-y-auto">
+          <div className="flex-1 px-8 pb-6 flex flex-col min-h-0 overflow-y-auto">
             {activeTab === 'staff' && (
               <div className="flex flex-col h-full animate-in slide-in-from-right-8 duration-300">
-                <div className="space-y-4 mb-6">
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all">
-                    <User className="text-slate-400" size={20} />
-                    <input
-                      className="bg-transparent border-none w-full text-lg font-semibold text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
-                      placeholder="Username"
-                      value={staffUsername}
-                      onChange={(e) => setStaffUsername(e.target.value)}
-                    />
+                <div className="space-y-5 mb-4 shrink-0">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                      Username
+                    </label>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
+                      <User className="text-slate-400" size={20} />
+                      <input
+                        className="bg-transparent border-none w-full text-base font-bold text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
+                        placeholder="Enter username"
+                        value={staffUsername}
+                        onChange={(e) => setStaffUsername(e.target.value)}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex justify-center gap-4 py-4">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className={`w-4 h-4 rounded-full transition-all duration-200 ${
-                          i < pin.length ? 'bg-[#1a3a44] scale-110' : 'bg-slate-200'
-                        }`}
-                      />
-                    ))}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-3 ml-1">
+                      Access PIN
+                    </label>
+                    <div className="flex justify-center gap-6">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+                            i < pin.length
+                              ? 'bg-[#1a3a44] border-[#1a3a44] scale-110'
+                              : 'bg-transparent border-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-auto grid grid-cols-3 gap-3">
+                <div className="flex-1 grid grid-cols-3 gap-3 place-content-center mt-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                     <button
                       key={num}
                       onClick={() => handlePinPress(num.toString())}
-                      className="h-16 rounded-2xl bg-slate-50 text-2xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b-2 border-slate-200"
+                      className="h-14 rounded-xl bg-slate-50 text-xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b border-slate-200"
                     >
                       {num}
                     </button>
                   ))}
                   <button
                     onClick={handlePinDelete}
-                    className="h-16 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center active:bg-slate-200 active:scale-95 transition-all"
+                    className="h-14 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center active:bg-slate-200 active:scale-95 transition-all"
                   >
-                    <Delete size={24} />
+                    <Delete size={22} />
                   </button>
                   <button
                     onClick={() => handlePinPress('0')}
-                    className="h-16 rounded-2xl bg-slate-50 text-2xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b-2 border-slate-200"
+                    className="h-14 rounded-xl bg-slate-50 text-xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b border-slate-200"
                   >
                     0
                   </button>
                   <button
                     onClick={() => handleLogin()}
                     disabled={loading}
-                    className="h-16 rounded-2xl bg-[#2e7585] text-white flex items-center justify-center active:bg-[#245f6c] active:scale-95 transition-all shadow-lg shadow-[#2e7585]/30"
+                    className="h-14 rounded-xl bg-[#2e7585] text-white flex items-center justify-center active:bg-[#245f6c] active:scale-95 transition-all shadow-md shadow-[#2e7585]/20"
                   >
                     {loading ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Check size={28} />
+                      <Check size={24} />
                     )}
                   </button>
                 </div>
@@ -161,14 +181,16 @@ export default function LoginPage() {
 
             {activeTab === 'admin' && (
               <form onSubmit={handleLogin} className="flex flex-col h-full animate-in slide-in-from-left-8 duration-300">
-                <div className="space-y-5 mt-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-2">Email Address</label>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] transition-all">
+                <div className="space-y-6 mt-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                      Email Address
+                    </label>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
                       <Mail className="text-slate-400" size={20} />
                       <input
                         type="email"
-                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
+                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
                         placeholder="admin@somalipost.gov.so"
                         value={adminEmail}
                         onChange={(e) => setAdminEmail(e.target.value)}
@@ -176,19 +198,21 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-2">Password</label>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] transition-all">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                      Password
+                    </label>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
                       <Lock className="text-slate-400" size={20} />
                       <input
                         type="password"
-                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
-                        placeholder="********"
+                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
+                        placeholder="••••••••"
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
                       />
                     </div>
-                    <div className="text-right">
+                    <div className="text-right mt-2">
                       <button type="button" className="text-xs font-bold text-[#2e7585]">
                         Forgot Password?
                       </button>
@@ -211,6 +235,13 @@ export default function LoginPage() {
                 </div>
               </form>
             )}
+
+            <div className="mt-4 flex items-center justify-center gap-2 opacity-50">
+              <ShieldCheck size={12} className="text-[#1a3a44]" />
+              <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
+                Official Government Portal
+              </span>
+            </div>
           </div>
         </div>
       </div>
