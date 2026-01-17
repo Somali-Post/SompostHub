@@ -5,7 +5,8 @@ import { getSession } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     const session = await getSession();
-    if (!session) {
+    const scannerId = session && typeof session.id === "string" ? session.id : null;
+    if (!scannerId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
       weight: parseFloat(item.weight),
       type: item.type,
       origin: item.origin,
-      scannerId: session.id,
+      scannerId,
     }));
 
     const result = await prisma.scan.createMany({
