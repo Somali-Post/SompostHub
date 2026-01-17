@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Somali Post Staff Hub",
   description: "Internal operational portal",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#1a3a44",
 };
 
