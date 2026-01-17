@@ -6,11 +6,12 @@ import { revalidatePath } from 'next/cache';
 
 export async function getNotifications() {
   const session = await getSession();
-  if (!session) return [];
+  const userId = session?.id as string | undefined;
+  if (!userId) return [];
 
   return await prisma.notification.findMany({
     where: {
-      OR: [{ userId: null }, { userId: session.id }],
+      OR: [{ userId: null }, { userId }],
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -26,10 +27,11 @@ export async function markAsRead(id: string) {
 
 export async function clearAllNotifications() {
   const session = await getSession();
-  if (!session) return;
+  const userId = session?.id as string | undefined;
+  if (!userId) return;
 
   await prisma.notification.deleteMany({
-    where: { userId: session.id },
+    where: { userId },
   });
   revalidatePath('/notifications');
 }
