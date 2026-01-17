@@ -1,24 +1,40 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef } from 'react';
 import {
   ScanBarcode,
   Camera,
-  CheckCircle,
   Package,
   Scale,
   Trash2,
   ArrowRight,
   Save,
   RotateCcw,
+  CheckCircle,
+  Plane,
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const getCountryInfo = (code: string) => {
+  try {
+    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+    const name = regionNames.of(code) || code;
+    const flag = code
+      .toUpperCase()
+      .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397));
+    return { name, flag };
+  } catch (e) {
+    return { name: code, flag: '🌐' };
+  }
+};
 
 type ScannedItem = {
   id: string;
   barcode: string;
   type: string;
   origin: string;
+  originCode: string;
+  flag: string;
   weight: string;
   timestamp: Date;
   status: 'valid' | 'invalid';
@@ -29,8 +45,8 @@ export default function ScanPage() {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [weightInput, setWeightInput] = useState('');
   const [isProcessingImg, setIsProcessingImg] = useState(false);
-  const [scanMode, setScanMode] = useState<'INBOUND' | 'OUTBOUND'>('INBOUND');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scanMode, setScanMode] = useState<'INBOUND' | 'OUTBOUND'>('INBOUND');
 
   const barcodeRef = useRef<HTMLInputElement>(null);
   const weightRef = useRef<HTMLInputElement>(null);
@@ -40,7 +56,7 @@ export default function ScanPage() {
     const isS10 = /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(clean);
 
     let type = 'Unknown';
-    let origin = 'Unknown';
+    let originCode = 'Unknown';
 
     if (isS10) {
       const prefix = clean.substring(0, 2);
@@ -51,16 +67,24 @@ export default function ScanPage() {
       else if (prefix.startsWith('R')) type = 'Registered Mail';
       else if (prefix.startsWith('L')) type = 'Untracked Letter';
 
-      origin = suffix;
+      originCode = suffix;
     }
 
-    return { barcode: clean, type, origin, status: isS10 ? 'valid' : 'invalid' };
+    const { name, flag } = getCountryInfo(originCode);
+
+    return {
+      barcode: clean,
+      type,
+      origin: name,
+      originCode,
+      flag,
+      status: isS10 ? 'valid' : 'invalid',
+    };
   };
 
   const handleBarcodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!barcodeInput) return;
-
     weightRef.current?.focus();
   };
 
@@ -69,38 +93,39 @@ export default function ScanPage() {
     if (!barcodeInput) return;
 
     const details = parseBarcode(barcodeInput);
+
     const newItem: ScannedItem = {
       id: Date.now().toString(),
       barcode: details.barcode,
       type: details.type,
       origin: details.origin,
+      originCode: details.originCode,
+      flag: details.flag,
       weight: weightInput || '0.00',
       timestamp: new Date(),
-      status: details.status as ScannedItem['status'],
+      status: details.status,
     };
 
     setBatch([newItem, ...batch]);
-
     setBarcodeInput('');
     setWeightInput('');
     barcodeRef.current?.focus();
+    toast.success(`Added ${details.origin} item`);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setIsProcessingImg(true);
-
     setTimeout(() => {
-      const mockResult = 'RR123456789SO';
-      setBarcodeInput(mockResult);
+      setBarcodeInput('CC643674434SE');
       setIsProcessingImg(false);
       weightRef.current?.focus();
-    }, 1500);
+      toast.info('Barcode detected: CC643674434SE');
+    }, 1000);
   };
 
-  const removeItem = (id: string) => {
+  const removeitem = (id: string) => {
     setBatch(batch.filter((item) => item.id !== id));
   };
 
@@ -117,14 +142,13 @@ export default function ScanPage() {
 
       if (res.ok) {
         const data = await res.json();
-        toast.success(`Batch submitted to database (${data.count} items).`);
+        toast.success(`Success! Saved ${data.count} items to database.`);
         setBatch([]);
       } else {
-        toast.error('Failed to save batch. Please try again.');
+        toast.error('Failed to save batch.');
       }
     } catch (error) {
-      console.error(error);
-      toast.error('Connection error');
+      toast.error('Connection Error');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,8 +162,11 @@ export default function ScanPage() {
             <ScanBarcode className="text-auth-button" /> Scan Station
           </h1>
           <p className="text-xs text-slate-500 font-medium">
-            Batch ID: <span className="font-mono text-slate-700">#B-9921</span> -
-            <span className="ml-2 text-green-600">Scanner Ready</span>
+            Batch ID:{' '}
+            <span className="font-mono text-slate-700">
+              #{new Date().getTime().toString().slice(-6)}
+            </span>{' '}
+            • <span className="ml-2 text-green-600">Scanner Ready</span>
           </p>
         </div>
 
@@ -186,26 +213,24 @@ export default function ScanPage() {
             <div className="flex flex-col gap-6">
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                  1. Scan Barcode (or Upload)
+                  1. Scan Barcode
                 </label>
                 <div className="flex gap-3">
                   <form onSubmit={handleBarcodeSubmit} className="flex-1">
                     <input
                       ref={barcodeRef}
                       value={barcodeInput}
-                      onChange={(e) => setBarcodeInput(e.target.value)}
+                      onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
                       className="w-full h-16 px-6 text-3xl font-mono font-bold text-slate-900 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-auth-button focus:ring-4 focus:ring-auth-button/10 outline-none transition-all placeholder:text-slate-300 uppercase"
                       placeholder="SCAN ID..."
                       autoFocus
                     />
                   </form>
-
                   <label className="w-16 h-16 bg-slate-800 text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-slate-700 active:scale-95 transition-all shadow-md">
                     <Camera size={28} />
                     <input
                       type="file"
                       accept="image/*"
-                      capture="environment"
                       className="hidden"
                       onChange={handleImageUpload}
                     />
@@ -239,7 +264,7 @@ export default function ScanPage() {
                   <button
                     type="submit"
                     disabled={!barcodeInput}
-                    className="w-32 bg-auth-button text-white rounded-xl font-bold text-lg shadow-md hover:bg-auth-buttonHover disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+                    className="w-32 bg-auth-button text-white rounded-xl font-bold text-lg shadow-md hover:bg-auth-buttonHover disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     ADD <ArrowRight size={20} />
                   </button>
@@ -250,20 +275,26 @@ export default function ScanPage() {
 
           {batch.length > 0 ? (
             <div className="bg-white border border-slate-200 rounded-xl p-6 flex items-center gap-6 animate-in slide-in-from-top-4 fade-in duration-300">
-              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center border-4 border-green-100 text-green-600">
-                <CheckCircle size={40} />
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center border-4 border-green-100 text-green-600 text-4xl shadow-sm">
+                {batch[0].flag}
               </div>
               <div>
-                <p className="text-xs font-bold text-green-600 uppercase mb-1">Successfully Added</p>
+                <p className="text-xs font-bold text-green-600 uppercase mb-1 flex items-center gap-1">
+                  <CheckCircle size={12} /> Successfully Added
+                </p>
                 <h2 className="text-3xl font-black text-slate-900 font-mono">
                   {batch[0].barcode}
                 </h2>
-                <div className="flex gap-4 mt-2 text-sm text-slate-500">
+                <div className="flex gap-4 mt-2 text-sm text-slate-500 font-medium">
                   <span className="flex items-center gap-1">
-                    <Package size={14} /> {batch[0].type}
+                    <Plane size={16} /> From:{' '}
+                    <span className="text-slate-900 font-bold">{batch[0].origin}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <Scale size={14} /> {batch[0].weight} kg
+                    <Package size={16} /> {batch[0].type}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Scale size={16} /> {batch[0].weight} kg
                   </span>
                 </div>
               </div>
@@ -294,13 +325,16 @@ export default function ScanPage() {
                 className="group flex justify-between items-center p-3 rounded-lg border border-slate-100 bg-white hover:border-auth-button/30 hover:shadow-sm transition-all"
               >
                 <div>
-                  <p className="font-mono font-bold text-slate-800">{item.barcode}</p>
-                  <p className="text-[10px] text-slate-500 uppercase">
-                    {item.type} - {item.weight} kg
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{item.flag}</span>
+                    <p className="font-mono font-bold text-slate-800">{item.barcode}</p>
+                  </div>
+                  <p className="text-[10px] text-slate-500 uppercase mt-0.5 font-medium pl-8">
+                    {item.origin} • {item.weight} kg
                   </p>
                 </div>
                 <button
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeitem(item.id)}
                   className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
@@ -308,22 +342,20 @@ export default function ScanPage() {
               </div>
             ))}
             {batch.length === 0 && (
-              <p className="text-center text-xs text-slate-400 py-10">No items in batch yet.</p>
+              <p className="text-center text-xs text-slate-400 py-10">
+                No items in batch yet.
+              </p>
             )}
           </div>
 
           <div className="p-4 border-t border-slate-100 bg-slate-50">
-            <div className="flex justify-between items-center mb-4 text-sm">
-              <span className="text-slate-500">Total Items</span>
-              <span className="font-bold text-slate-900">{batch.length}</span>
-            </div>
             <button
               onClick={submitBatch}
               disabled={batch.length === 0 || isSubmitting}
               className="w-full py-3 bg-auth-sidebarFrom text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
-                <span>Saving...</span>
+                'Saving...'
               ) : (
                 <>
                   <Save size={18} /> Submit Batch
