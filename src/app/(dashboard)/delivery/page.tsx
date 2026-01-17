@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Camera, CheckCircle, Package, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { confirmDelivery } from '@/app/actions/delivery';
 
 export default function DeliveryPage() {
   const [trackingId, setTrackingId] = useState('');
@@ -13,14 +14,20 @@ export default function DeliveryPage() {
 
   const handleConfirm = async () => {
     if (!trackingId || !customerName) {
-      toast.warning('Please fill in required fields');
+      toast.warning('Fill required fields');
       return;
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsConfirmed(true);
+    try {
+      await confirmDelivery(trackingId, customerName);
+      setIsConfirmed(true);
+      toast.success('Delivery Recorded & Logged');
+    } catch (error) {
+      toast.error('Item not found or system error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {

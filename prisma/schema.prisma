@@ -39,8 +39,21 @@ model Scan {
   weight    Float
   type      String
   origin    String
+  status    String   @default("PROCESSING") // PROCESSING, DELIVERED, RETURNED
+  deliveredTo String?
   scannerId String
   scanner   User     @relation(fields: [scannerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String
+  actorId   String
+  actorName String
+  actorRole String
   createdAt DateTime @default(now())
 }
 

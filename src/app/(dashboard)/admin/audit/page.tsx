@@ -1,19 +1,15 @@
-'use client';
+import { prisma } from '@/lib/prisma';
 
-import { Search, Download, Shield, Key, Box, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+export default async function AuditLogPage() {
+  const logs = await prisma.auditLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
 
-export default function AuditLogPage() {
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 md:p-8 gap-6">
       <div className="flex justify-between items-end">
-        <h1 className="text-2xl font-bold text-slate-900">Audit Log</h1>
-        <button
-          onClick={() => toast.message('Exporting...')}
-          className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50"
-        >
-          <Download size={16} /> Export
-        </button>
+        <h1 className="text-2xl font-bold text-slate-900">System Audit Log</h1>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <table className="w-full text-left text-sm">
@@ -22,16 +18,27 @@ export default function AuditLogPage() {
               <th className="px-6 py-3">Time</th>
               <th className="px-6 py-3">Actor</th>
               <th className="px-6 py-3">Action</th>
-              <th className="px-6 py-3 text-right">Status</th>
+              <th className="px-6 py-3">Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            <tr className="hover:bg-slate-50">
-              <td className="px-6 py-3 font-mono text-xs">10:42 AM</td>
-              <td className="px-6 py-3 font-bold">Said Ahmed</td>
-              <td className="px-6 py-3">PIN_RESET</td>
-              <td className="px-6 py-3 text-right text-green-600 font-bold">SUCCESS</td>
-            </tr>
+            {logs.map((log) => (
+              <tr key={log.id} className="hover:bg-slate-50">
+                <td className="px-6 py-3 font-mono text-xs text-slate-500">
+                  {new Date(log.createdAt).toLocaleString()}
+                </td>
+                <td className="px-6 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-700">{log.actorName}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-bold">
+                      {log.actorRole}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-3 font-bold text-slate-700">{log.action}</td>
+                <td className="px-6 py-3 text-slate-600">{log.details}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
