@@ -70,24 +70,57 @@ export async function GET(
 
     // 3. Normalize Data
     const records = Array.isArray(rawData) ? rawData : [rawData];
+    const originCode = cleanId.slice(-2);
 
-    const events = (records as any[]).map((record: any) => {
-      const date = parsePTTDate(record.EventDate);
-      const info = getEventInfo(record.EventCode);
-      
-      return {
-        code: record.EventCode,
-        location: record.EventOfficeName || record.EventOfficeCode,
-        timestamp: date.toLocaleString('en-GB', { 
-          day: '2-digit', month: 'short', year: 'numeric', 
-          hour: '2-digit', minute: '2-digit' 
-        }),
-        rawDate: date,
-        status: info.label,
-        explanation: info.description,
-        countryCode: record.EventCountryCode
-      };
-    }).sort((a: any, b: any) => b.rawDate - a.rawDate);
+    const eventsSource = records.flatMap((record: any) =>
+      Array.isArray(record?.Events) ? record.Events : [record]
+    );
+
+    const destinationCode =
+      typeof (records[0] as any)?.DestinationCountryCd === 'string'
+        ? (records[0] as any).DestinationCountryCd
+        : cleanId.slice(-2);
+
+    const events = (eventsSource as any[])
+      .map((record: any) => {
+        const eventCode = record.EventCode || record.EventCd || 'UNKNOWN';
+        const eventDate = record.EventDate || record.EventDT;
+        const location =
+          record.EventOfficeName ||
+          record.EventOfficeCode ||
+          record.EventLocation ||
+          record.EventOffice ||
+          'Unknown';
+
+        const date = parsePTTDate(eventDate);
+        const info = getEventInfo(eventCode);
+        const eventLabel = record.EventNm || info.label;
+        const eventDescription = record.EventNm
+          ? record.EventNm
+          : info.label === 'Processing'
+            ? `Unknown event code: ${eventCode}`
+            : info.description;
+        const locationCountry = /^[A-Z]{2}/.test(location)
+          ? location.slice(0, 2)
+          : destinationCode;
+
+        return {
+          code: eventCode,
+          location,
+          timestamp: date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          rawDate: date,
+          status: eventLabel === 'Processing' ? `Event ${eventCode}` : eventLabel,
+          explanation: eventDescription,
+          countryCode: locationCountry,
+        };
+      })
+      .sort((a: any, b: any) => b.rawDate - a.rawDate);
 
     if (events.length === 0) {
       return NextResponse.json({ found: false, trackingId: cleanId });
@@ -96,18 +129,18 @@ export async function GET(
     const latest = events[0];
     const first = events[events.length - 1];
 
-    const originCode =
-      typeof first.countryCode === 'string' && first.countryCode.length === 2
-        ? first.countryCode
-        : cleanId.slice(-2);
-    const destCode = cleanId.slice(-2);
+    const destCode = destinationCode;
 
-    let originName = originCode;
-    let destName = destCode;
+    let originName = (records[0] as any)?.OriginCountryNm || originCode;
+    let destName = (records[0] as any)?.DestinationCountryNm || destCode;
     try {
       const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
-      originName = regionNames.of(originCode) || originCode;
-      destName = regionNames.of(destCode) || destCode;
+      if (originName === originCode) {
+        originName = regionNames.of(originCode) || originCode;
+      }
+      if (destName === destCode) {
+        destName = regionNames.of(destCode) || destCode;
+      }
     } catch (error) {
       originName = originCode;
       destName = destCode;
