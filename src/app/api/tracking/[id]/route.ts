@@ -52,11 +52,19 @@ export async function GET(
     }
 
     // 2. Handle "Not Found" (API returns literal "1")
-    if (rawData === '1' || !rawData) {
+    if (rawData === '1' || rawData === 1 || !rawData) {
       return NextResponse.json({ 
         found: false, 
         trackingId: cleanId,
         message: 'Item not found in global network.' 
+      });
+    }
+
+    if (typeof rawData !== 'object') {
+      return NextResponse.json({
+        found: false,
+        trackingId: cleanId,
+        message: 'Tracking response format not supported.',
       });
     }
 
@@ -88,12 +96,22 @@ export async function GET(
     const latest = events[0];
     const first = events[events.length - 1];
 
-    const originCode = first.countryCode;
+    const originCode =
+      typeof first.countryCode === 'string' && first.countryCode.length === 2
+        ? first.countryCode
+        : cleanId.slice(-2);
     const destCode = cleanId.slice(-2);
-    
-    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
-    const originName = regionNames.of(originCode) || originCode;
-    const destName = regionNames.of(destCode) || destCode;
+
+    let originName = originCode;
+    let destName = destCode;
+    try {
+      const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+      originName = regionNames.of(originCode) || originCode;
+      destName = regionNames.of(destCode) || destCode;
+    } catch (error) {
+      originName = originCode;
+      destName = destCode;
+    }
 
     return NextResponse.json({
       found: true,
