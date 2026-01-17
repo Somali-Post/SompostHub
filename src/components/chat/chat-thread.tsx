@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Phone, Video, MoreVertical, Paperclip, Smile, Send } from 'lucide-react';
+import { Video, MoreVertical, Paperclip, Smile, Send } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import DailyIframe from '@daily-co/daily-js';
 import { getMessages, sendMessage } from '@/app/actions/chat';
+import { createDailyRoom } from '@/app/actions/daily';
 
 type ChatMessage = {
   id: string;
@@ -18,7 +20,10 @@ export default function ChatThread() {
   const [inputText, setInputText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [currentUserId, setCurrentUserId] = useState('');
+  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const callFrameRef = useRef<HTMLDivElement>(null);
+  const callObjectRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null);
 
   useEffect(() => {
     fetch('/api/me')
@@ -27,12 +32,8 @@ export default function ChatThread() {
       .catch(() => setCurrentUserId(''));
 
     const fetchMsgs = async () => {
-      try {
-        const data = await getMessages();
-        setMessages(data);
-      } catch (error) {
-        console.error('Failed to load messages', error);
-      }
+      const data = await getMessages();
+      setMessages(data);
     };
 
     fetchMsgs();
@@ -43,6 +44,62 @@ export default function ChatThread() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(
+    () => () => {
+      callObjectRef.current?.destroy();
+      callObjectRef.current = null;
+    },
+    []
+  );
+
+  const startVideoCall = async () => {
+    const confirmStart = window.confirm('Start a new video call?');
+    if (!confirmStart) return;
+
+    try {
+      const url = await createDailyRoom();
+      await sendMessage(`Started a Video Call. Join: ${url}`);
+      joinCall(url);
+    } catch (error) {
+      alert('Failed to start call. Check API Key.');
+    }
+  };
+
+  const extractUrl = (text: string) => text.match(/https?:\/\/\S+/)?.[0];
+
+  const joinCall = (url: string) => {
+    setActiveCallUrl(url);
+    setTimeout(() => {
+      if (!callFrameRef.current) return;
+
+      callObjectRef.current?.destroy();
+      callObjectRef.current = DailyIframe.createFrame(callFrameRef.current, {
+        iframeStyle: {
+          width: '100%',
+          height: '100%',
+          border: '0',
+          borderRadius: '12px',
+        },
+        showLeaveButton: true,
+      });
+
+      callObjectRef.current.join({ url });
+
+      callObjectRef.current.on('left-meeting', () => {
+        callObjectRef.current?.destroy();
+        callObjectRef.current = null;
+        setActiveCallUrl(null);
+      });
+    }, 100);
+  };
+
+  const closeCall = () => {
+    callObjectRef.current?.leave();
+    callObjectRef.current?.destroy();
+    callObjectRef.current = null;
+    setActiveCallUrl(null);
+  };
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
@@ -68,6 +125,24 @@ export default function ChatThread() {
 
   return (
     <div className="flex flex-col h-full bg-[#f0f2f5] relative font-sans">
+      {activeCallUrl && (
+        <div className="absolute inset-0 z-50 bg-slate-900 p-4 flex flex-col">
+          <div className="flex justify-between items-center mb-2 text-white">
+            <h3 className="font-bold">Active Call</h3>
+            <button
+              onClick={closeCall}
+              className="p-2 bg-red-600 rounded-lg text-sm font-bold"
+            >
+              Close / Minimize
+            </button>
+          </div>
+          <div
+            ref={callFrameRef}
+            className="flex-1 bg-black rounded-xl overflow-hidden shadow-2xl"
+          ></div>
+        </div>
+      )}
+
       <header className="h-16 px-6 border-b border-slate-200 bg-white flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-navy flex items-center justify-center text-white font-bold shadow-sm">
@@ -82,10 +157,11 @@ export default function ChatThread() {
           </div>
         </div>
         <div className="flex gap-2 text-slate-500">
-          <button className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors">
-            <Phone size={20} />
-          </button>
-          <button className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors">
+          <button
+            onClick={startVideoCall}
+            className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors"
+            title="Start Video Call"
+          >
             <Video size={20} />
           </button>
           <button className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors">
@@ -97,6 +173,8 @@ export default function ChatThread() {
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((msg) => {
           const isMe = msg.senderId === currentUserId;
+          const callUrl = extractUrl(msg.text);
+
           return (
             <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''} group`}>
               <div
@@ -113,6 +191,7 @@ export default function ChatThread() {
                   </span>
                   <span className="text-[10px] text-slate-400">{msg.time}</span>
                 </div>
+
                 <div
                   className={`relative p-3.5 text-sm shadow-sm leading-relaxed ${
                     isMe
@@ -120,7 +199,21 @@ export default function ChatThread() {
                       : 'bg-white text-slate-700 rounded-2xl rounded-tl-none border border-slate-100'
                   }`}
                 >
-                  {msg.text}
+                  {callUrl ? (
+                    <div className="flex flex-col gap-2">
+                      <p className="font-bold flex items-center gap-2">
+                        <Video size={16} /> Video Call Invite
+                      </p>
+                      <button
+                        onClick={() => joinCall(callUrl)}
+                        className="bg-white text-primary px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-100 transition-colors"
+                      >
+                        Join Call
+                      </button>
+                    </div>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
               </div>
             </div>
