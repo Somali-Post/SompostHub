@@ -14,7 +14,15 @@ export async function middleware(req: NextRequest) {
     const payload = await verifyToken(token);
 
     if (!payload) {
-      return NextResponse.redirect(new URL('/login', req.url));
+      if (path === '/login') {
+        const response = NextResponse.next();
+        response.cookies.delete('sp_session');
+        return response;
+      }
+
+      const response = NextResponse.redirect(new URL('/login', req.url));
+      response.cookies.delete('sp_session');
+      return response;
     }
 
     if (path.startsWith('/admin') && payload.role !== 'ADMIN') {
