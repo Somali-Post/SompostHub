@@ -1,6 +1,7 @@
 'use client';
 
 import { Search, Download, Shield, Key, Box, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AuditLogPage() {
   return (
@@ -8,7 +9,7 @@ export default function AuditLogPage() {
       <div className="flex justify-between items-end">
         <h1 className="text-2xl font-bold text-slate-900">Audit Log</h1>
         <button
-          onClick={() => alert('Exporting...')}
+          onClick={() => toast.message('Exporting...')}
           className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50"
         >
           <Download size={16} /> Export

@@ -10,6 +10,7 @@ import {
   ThumbsUp,
   User,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ArticlePage() {
   return (
@@ -42,14 +43,14 @@ export default function ArticlePage() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => alert('Feature coming soon')}
+            onClick={() => toast.info('Feature coming soon')}
             className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50"
           >
             <Printer size={16} /> Print
           </button>
           <button
             type="button"
-            onClick={() => alert('Feature coming soon')}
+            onClick={() => toast.info('Feature coming soon')}
             className="flex items-center gap-2 rounded-lg bg-auth-button px-4 py-2 text-sm font-bold text-white hover:bg-auth-buttonHover"
           >
             <Download size={16} /> PDF
@@ -128,14 +129,14 @@ export default function ArticlePage() {
             <div className="flex justify-center gap-2">
               <button
                 type="button"
-                onClick={() => alert('Feature coming soon')}
+                onClick={() => toast.info('Feature coming soon')}
                 className="rounded border border-slate-200 bg-white p-2 hover:text-green-600"
               >
                 <ThumbsUp size={16} />
               </button>
               <button
                 type="button"
-                onClick={() => alert('Feature coming soon')}
+                onClick={() => toast.info('Feature coming soon')}
                 className="rounded border border-slate-200 bg-white p-2 hover:text-red-600"
               >
                 <ThumbsDown size={16} />

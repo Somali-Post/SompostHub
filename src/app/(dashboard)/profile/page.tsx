@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Camera, Save, Edit2 } from 'lucide-react';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function ProfilePage() {
       body: JSON.stringify({ fullName, email, phone, location, avatar }),
     });
     if (res.ok) {
-      alert('Profile Saved!');
+      toast.success('Profile updated successfully');
       window.location.reload();
     }
   };

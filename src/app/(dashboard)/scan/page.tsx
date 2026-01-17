@@ -12,6 +12,7 @@ import {
   Save,
   RotateCcw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type ScannedItem = {
   id: string;
@@ -116,14 +117,14 @@ export default function ScanPage() {
 
       if (res.ok) {
         const data = await res.json();
-        alert(`Success! Saved ${data.count} items.`);
+        toast.success(`Batch submitted to database (${data.count} items).`);
         setBatch([]);
       } else {
-        alert('Failed to save batch. Please try again.');
+        toast.error('Failed to save batch. Please try again.');
       }
     } catch (error) {
       console.error(error);
-      alert('Connection Error');
+      toast.error('Connection error');
     } finally {
       setIsSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Camera, CheckCircle, Package, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function DeliveryPage() {
   const [trackingId, setTrackingId] = useState('');
@@ -12,7 +13,7 @@ export default function DeliveryPage() {
 
   const handleConfirm = async () => {
     if (!trackingId || !customerName) {
-      alert('Please fill in required fields');
+      toast.warning('Please fill in required fields');
       return;
     }
 

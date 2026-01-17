@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import PinKeypad from '@/components/auth/pin-keypad';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<'staff' | 'admin'>('staff');
@@ -33,10 +34,11 @@ export default function LoginPage() {
       if (res.ok) {
         window.location.href = '/chat';
       } else {
-        alert('Invalid Username or PIN');
+        toast.error('Invalid username or PIN');
       }
     } catch (err) {
       console.error(err);
+      toast.error('Connection error');
     }
   };
 
@@ -53,11 +55,11 @@ export default function LoginPage() {
       if (res.ok && data.success) {
         window.location.href = data.redirect || '/chat';
       } else {
-        alert(data.error || 'Login failed');
+        toast.error(data.error || 'Login failed');
       }
     } catch (err) {
       console.error(err);
-      alert('Connection error');
+      toast.error('Connection error');
     }
   };
 

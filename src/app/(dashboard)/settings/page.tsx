@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { User, Bell, Shield, Server, Save, Lock } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -12,7 +13,10 @@ export default function SettingsPage() {
   const [passLoading, setPassLoading] = useState(false);
 
   const handleChangePassword = async () => {
-    if (!oldPass || !newPass) return alert('Please fill in both fields.');
+    if (!oldPass || !newPass) {
+      toast.warning('Please fill in all fields');
+      return;
+    }
     setPassLoading(true);
     try {
       const res = await fetch('/api/auth/change-password', {
@@ -21,14 +25,14 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Success! Password updated.');
+        toast.success('Password updated successfully');
         setOldPass('');
         setNewPass('');
       } else {
-        alert(data.error || 'Failed to update password');
+        toast.error(data.error || 'Failed to update');
       }
     } catch (e) {
-      alert('Connection Error');
+      toast.error('Connection error');
     } finally {
       setPassLoading(false);
     }

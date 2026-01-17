@@ -6,6 +6,7 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import DailyIframe from '@daily-co/daily-js';
 import { getMessages, sendMessage } from '@/app/actions/chat';
 import { createDailyRoom } from '@/app/actions/daily';
+import { toast } from 'sonner';
 
 type ChatMessage = {
   id: string;
@@ -54,16 +55,24 @@ export default function ChatThread() {
   );
 
   const startVideoCall = async () => {
-    const confirmStart = window.confirm('Start a new video call?');
-    if (!confirmStart) return;
-
-    try {
-      const url = await createDailyRoom();
-      await sendMessage(`Started a Video Call. Join: ${url}`);
-      joinCall(url);
-    } catch (error) {
-      alert('Failed to start call. Check API Key.');
-    }
+    toast('Start a video call?', {
+      action: {
+        label: 'Start Call',
+        onClick: async () => {
+          try {
+            const url = await createDailyRoom();
+            await sendMessage(`Started a Video Call. Click to join: ${url}`);
+            joinCall(url);
+            toast.success('Call started');
+          } catch (error) {
+            toast.error('Failed to start call');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+      },
+    });
   };
 
   const extractUrl = (text: string) => text.match(/https?:\/\/\S+/)?.[0];

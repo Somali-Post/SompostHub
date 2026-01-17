@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Search, Filter, Plus, Lock, User, X, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function StaffManagementPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -39,17 +40,17 @@ export default function StaffManagementPage() {
       });
 
       if (res.ok) {
-        alert('User Created Successfully! PIN is 0000.');
+        toast.success('User created successfully');
         setIsDrawerOpen(false);
         setNewName('');
         setNewUsername('');
         fetchUsers();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to create user');
+        toast.error(data.error || 'Failed to create user');
       }
     } catch (error) {
-      alert('Connection Error');
+      toast.error('Connection error');
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +86,7 @@ export default function StaffManagementPage() {
               />
             </div>
             <button
-              onClick={() => alert('Feature coming soon')}
+              onClick={() => toast.info('Feature coming soon')}
               className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-white"
             >
               <Filter size={16} /> Role
@@ -180,7 +181,7 @@ export default function StaffManagementPage() {
 
             <div className="flex flex-col gap-2 mt-auto">
               <button
-                onClick={() => alert('Feature coming soon')}
+                onClick={() => toast.info('Feature coming soon')}
                 className="w-full py-2 bg-auth-button text-white font-bold rounded-lg hover:bg-auth-buttonHover"
               >
                 Confirm Reset
