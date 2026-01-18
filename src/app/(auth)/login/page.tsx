@@ -1,21 +1,21 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
 import { Delete, Check, ArrowRight, User, Lock, Mail, ShieldCheck, Info } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import PinKeypad from '@/components/auth/pin-keypad';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'staff' | 'admin'>('staff');
 
+  // State
   const [staffUsername, setStaffUsername] = useState('');
   const [pin, setPin] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Handlers
   const handlePinPress = (key: string) => {
     if (pin.length < 4) setPin((prev) => prev + key);
   };
@@ -55,199 +55,231 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="md:hidden fixed inset-0 flex flex-col bg-[#1a3a44]">
-        <div className="h-[30%] flex flex-col items-center justify-center relative">
+      {/* =========================================================================
+          MOBILE LAYOUT (Native App Style)
+         ========================================================================= */}
+      <div className="md:hidden fixed inset-0 flex flex-col bg-white overflow-hidden font-sans">
+        {/* 1. Header with Grid & Wave */}
+        <div className="relative bg-[#1a3a44] pt-12 pb-24 px-6 flex flex-col items-center justify-center shrink-0">
+          {/* Dot Grid Pattern */}
           <div
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0 opacity-20 pointer-events-none"
             style={{
-              backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
+              backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
             }}
-          ></div>
+          />
 
-          <div className="relative z-10 flex flex-col items-center gap-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/10">
-              <Image src="/logos/logo.png" alt="Somali Post" width={50} height={50} className="object-contain" priority />
+          {/* Logo & Brand */}
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl ring-4 ring-white/10 mb-2">
+              <Image
+                src="/logos/logo.png"
+                alt="Somali Post"
+                width={48}
+                height={48}
+                className="object-contain"
+                priority
+              />
             </div>
-            <div className="text-center text-white">
-              <h1 className="text-2xl font-black tracking-tight leading-none">Somali Post</h1>
-              <p className="text-[10px] text-[#C2A44D] font-bold uppercase tracking-[0.25em] mt-1.5">
+            <div className="text-center">
+              <h1 className="text-2xl font-black text-white tracking-tight">Somali Post</h1>
+              <p className="text-[10px] text-[#C2A44D] font-bold uppercase tracking-[0.25em]">
                 Employee Hub
               </p>
             </div>
           </div>
+
+          {/* Wavy Bottom SVG */}
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+            <svg
+              className="relative block w-[calc(100%+1.3px)] h-[50px]"
+              data-name="Layer 1"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1200 120"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+                fill="#ffffff"
+              ></path>
+            </svg>
+          </div>
         </div>
 
-        <div className="h-[70%] bg-white rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
-          <div className="flex justify-center pt-8 pb-6">
-            <div className="flex bg-slate-100 p-1.5 rounded-2xl w-72 shadow-inner">
-              <button
-                onClick={() => setActiveTab('staff')}
-                className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 ${
-                  activeTab === 'staff'
-                    ? 'bg-white text-[#1a3a44] shadow-md transform scale-105'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                STAFF LOGIN
-              </button>
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 ${
-                  activeTab === 'admin'
-                    ? 'bg-white text-[#1a3a44] shadow-md transform scale-105'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                ADMIN LOGIN
-              </button>
-            </div>
+        {/* 2. Main Content Area */}
+        <div className="flex-1 flex flex-col px-6 pb-6 -mt-6 bg-white relative z-10">
+          {/* Toggle Pills */}
+          <div className="bg-slate-50 p-1.5 rounded-xl flex mb-6 shadow-inner mx-auto w-full max-w-[280px]">
+            <button
+              onClick={() => setActiveTab('staff')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'staff' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-400'
+              }`}
+            >
+              Staff
+            </button>
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                activeTab === 'admin' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-400'
+              }`}
+            >
+              Admin
+            </button>
           </div>
 
-          <div className="flex-1 px-8 pb-6 flex flex-col min-h-0 overflow-y-auto">
-            {activeTab === 'staff' && (
-              <div className="flex flex-col h-full animate-in slide-in-from-right-8 duration-300">
-                <div className="space-y-5 mb-4 shrink-0">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                      Username
-                    </label>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
-                      <User className="text-slate-400" size={20} />
-                      <input
-                        className="bg-transparent border-none w-full text-base font-bold text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
-                        placeholder="Enter username"
-                        value={staffUsername}
-                        onChange={(e) => setStaffUsername(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-3 ml-1">
-                      Access PIN
-                    </label>
-                    <div className="flex justify-center gap-6">
-                      {[0, 1, 2, 3].map((i) => (
-                        <div
-                          key={i}
-                          className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
-                            i < pin.length
-                              ? 'bg-[#1a3a44] border-[#1a3a44] scale-110'
-                              : 'bg-transparent border-slate-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
+          {/* STAFF VIEW */}
+          {activeTab === 'staff' && (
+            <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Inputs */}
+              <div className="space-y-4 mb-auto">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+                    Username
+                  </label>
+                  <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl mt-1 focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <User size={18} className="text-slate-400" />
+                    <input
+                      className="bg-transparent border-none w-full text-base font-bold text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
+                      placeholder="Enter ID"
+                      value={staffUsername}
+                      onChange={(e) => setStaffUsername(e.target.value)}
+                    />
                   </div>
                 </div>
 
-                <div className="flex-1 grid grid-cols-3 gap-3 place-content-center mt-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => handlePinPress(num.toString())}
-                      className="h-14 rounded-xl bg-slate-50 text-xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b border-slate-200"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                  <button
-                    onClick={handlePinDelete}
-                    className="h-14 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center active:bg-slate-200 active:scale-95 transition-all"
-                  >
-                    <Delete size={22} />
-                  </button>
-                  <button
-                    onClick={() => handlePinPress('0')}
-                    className="h-14 rounded-xl bg-slate-50 text-xl font-bold text-slate-700 active:bg-slate-200 active:scale-95 transition-all shadow-sm border-b border-slate-200"
-                  >
-                    0
-                  </button>
-                  <button
-                    onClick={() => handleLogin()}
-                    disabled={loading}
-                    className="h-14 rounded-xl bg-[#2e7585] text-white flex items-center justify-center active:bg-[#245f6c] active:scale-95 transition-all shadow-md shadow-[#2e7585]/20"
-                  >
-                    {loading ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Check size={24} />
-                    )}
-                  </button>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+                    Security PIN
+                  </label>
+                  <div className="flex justify-center gap-4 mt-3">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                          i < pin.length ? 'bg-[#2e7585] scale-110' : 'bg-slate-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'admin' && (
-              <form onSubmit={handleLogin} className="flex flex-col h-full animate-in slide-in-from-left-8 duration-300">
-                <div className="space-y-6 mt-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                      Email Address
-                    </label>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
-                      <Mail className="text-slate-400" size={20} />
-                      <input
-                        type="email"
-                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
-                        placeholder="admin@somalipost.gov.so"
-                        value={adminEmail}
-                        onChange={(e) => setAdminEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">
-                      Password
-                    </label>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:border-[#2e7585] focus-within:ring-1 focus-within:ring-[#2e7585] transition-all shadow-sm">
-                      <Lock className="text-slate-400" size={20} />
-                      <input
-                        type="password"
-                        className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
-                        placeholder="••••••••"
-                        value={adminPassword}
-                        onChange={(e) => setAdminPassword(e.target.value)}
-                      />
-                    </div>
-                    <div className="text-right mt-2">
-                      <button type="button" className="text-xs font-bold text-[#2e7585]">
-                        Forgot Password?
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-auto pb-4">
+              {/* Keypad */}
+              <div className="grid grid-cols-3 gap-3 mt-4">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                   <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-16 bg-[#1a3a44] text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl shadow-[#1a3a44]/20 active:scale-95 transition-all"
+                    key={num}
+                    onClick={() => handlePinPress(num.toString())}
+                    className="h-14 bg-slate-50 rounded-xl text-xl font-bold text-slate-700 shadow-sm border-b-2 border-slate-100 active:border-b-0 active:translate-y-[2px] transition-all"
                   >
-                    {loading ? 'Signing In...' : (
-                      <>
-                        Sign In <ArrowRight />
-                      </>
-                    )}
+                    {num}
                   </button>
-                </div>
-              </form>
-            )}
-
-            <div className="mt-4 flex items-center justify-center gap-2 opacity-50">
-              <ShieldCheck size={12} className="text-[#1a3a44]" />
-              <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
-                Official Government Portal
-              </span>
+                ))}
+                <button
+                  onClick={handlePinDelete}
+                  className="h-14 flex items-center justify-center text-slate-400 active:text-slate-600 transition-colors"
+                >
+                  <Delete size={24} />
+                </button>
+                <button
+                  onClick={() => handlePinPress('0')}
+                  className="h-14 bg-slate-50 rounded-xl text-xl font-bold text-slate-700 shadow-sm border-b-2 border-slate-100 active:border-b-0 active:translate-y-[2px] transition-all"
+                >
+                  0
+                </button>
+                <button
+                  onClick={() => handleLogin()}
+                  disabled={loading}
+                  className="h-14 bg-[#1a3a44] rounded-xl flex items-center justify-center text-white shadow-lg shadow-[#1a3a44]/20 active:scale-95 transition-all"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Check size={28} />
+                  )}
+                </button>
+              </div>
             </div>
+          )}
+
+          {/* ADMIN VIEW */}
+          {activeTab === 'admin' && (
+            <form onSubmit={handleLogin} className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-5 mt-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+                    Email
+                  </label>
+                  <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl mt-1 focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <Mail size={18} className="text-slate-400" />
+                    <input
+                      type="email"
+                      className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
+                      placeholder="admin@somalipost.gov.so"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+                    Password
+                  </label>
+                  <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl mt-1 focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <Lock size={18} className="text-slate-400" />
+                    <input
+                      type="password"
+                      className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-300 focus:ring-0 p-0"
+                      placeholder="********"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="text-right mt-2">
+                    <button type="button" className="text-xs font-bold text-[#2e7585]">
+                      Forgot Password?
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-auto">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-16 bg-[#1a3a44] text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-[#1a3a44]/20 active:scale-95 transition-all"
+                >
+                  {loading ? (
+                    'Signing In...'
+                  ) : (
+                    <>
+                      Sign In <ArrowRight />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Footer */}
+          <div className="mt-6 flex items-center justify-center gap-2 opacity-40">
+            <ShieldCheck size={12} className="text-[#1a3a44]" />
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Official Government Portal
+            </span>
           </div>
         </div>
       </div>
 
+      {/* =========================================================================
+          DESKTOP LAYOUT (Unchanged)
+         ========================================================================= */}
       <div className="hidden md:flex w-full h-full">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border border-slate-100">
+          {/* Tab Switcher */}
           <div className="flex bg-slate-50 p-1 rounded-lg mb-8 border border-slate-100">
             <button
               onClick={() => setActiveTab('staff')}
@@ -271,11 +303,14 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {/* STAFF FORM DESKTOP */}
           {activeTab === 'staff' && (
             <form onSubmit={(e) => handleLogin(e)} className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Username</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                    Username
+                  </label>
                   <input
                     type="text"
                     name="username"
@@ -323,6 +358,7 @@ export default function LoginPage() {
             </form>
           )}
 
+          {/* ADMIN FORM DESKTOP */}
           {activeTab === 'admin' && (
             <form onSubmit={handleLogin} className="animate-in fade-in slide-in-from-left-4 duration-300">
               <div className="space-y-5">

@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Somali Post Staff Hub",
   description: "Internal operational portal",
-  manifest: "/manifest.json",
+  manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {
