@@ -103,7 +103,7 @@ export default function ScanPage() {
       flag: details.flag,
       weight: weightInput || '0.00',
       timestamp: new Date(),
-      status: details.status,
+      status: details.status as 'valid' | 'invalid',
     };
 
     setBatch([newItem, ...batch]);
