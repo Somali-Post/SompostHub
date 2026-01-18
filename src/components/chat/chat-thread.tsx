@@ -71,6 +71,7 @@ export default function ChatThread() {
       },
       cancel: {
         label: 'Cancel',
+        onClick: () => {},
       },
     });
   };
