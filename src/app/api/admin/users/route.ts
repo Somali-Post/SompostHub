@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { fullName, username, role, phone } = body;
+    const { fullName, username, role, phone, avatar } = body;
 
     if (role === 'ADMIN') {
       if (!MASTER_ADMINS.includes(session.username as string)) {
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
         username,
         role,
         phone,
+        avatar,
         pin: defaultPinHash,
         pinMustChange: true,
         jobTitle: role === 'ADMIN' ? 'Administrator' : 'Staff Member',

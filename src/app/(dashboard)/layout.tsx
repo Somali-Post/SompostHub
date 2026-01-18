@@ -1,9 +1,11 @@
 import DashboardLayoutClient from "@/components/layout/dashboard-layout-client";
+import { getSession } from "@/lib/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
+  const user = await getSession();
+  return <DashboardLayoutClient user={user}>{children}</DashboardLayoutClient>;
 }

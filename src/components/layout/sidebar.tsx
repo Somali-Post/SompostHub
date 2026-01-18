@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Settings, LogOut } from 'lucide-react';
@@ -8,22 +8,15 @@ import { NAV_SECTIONS } from '@/config/navigation';
 import Image from 'next/image';
 import clsx from 'clsx';
 
-export default function Sidebar() {
+interface SidebarProps {
+  user?: any;
+  onNavigate?: () => void;
+}
+
+export default function Sidebar({ user, onNavigate }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    fetch('/api/me')
-      .then((res) => {
-        if (res.ok) return res.json();
-        return null;
-      })
-      .then((data) => {
-        if (data) setUser(data);
-      });
-  }, []);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -108,6 +101,7 @@ export default function Sidebar() {
                       <Link
                         key={item.href}
                         href={item.href}
+                        onClick={onNavigate}
                         className={clsx(
                           'flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative',
                           isActive
@@ -147,6 +141,7 @@ export default function Sidebar() {
           <div className="flex flex-col gap-4">
             <Link
               href="/settings"
+              onClick={onNavigate}
               className={clsx(
                 'flex items-center gap-3 text-white/70 hover:text-white transition-colors',
                 isCollapsed && 'justify-center'
@@ -165,6 +160,7 @@ export default function Sidebar() {
 
             <Link
               href="/profile"
+              onClick={onNavigate}
               className={clsx(
                 'flex items-center gap-3 pt-4 border-t border-white/10',
                 isCollapsed && 'justify-center'
@@ -228,3 +224,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

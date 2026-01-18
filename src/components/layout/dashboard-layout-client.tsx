@@ -8,14 +8,14 @@ import { Menu, X, Bell, User } from 'lucide-react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
+export default function DashboardLayoutClient({ children, user }: { children: React.ReactNode; user?: any }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
             {/* Desktop Sidebar */}
             <div className="hidden md:flex flex-col h-full shrink-0">
-                <Sidebar />
+                <Sidebar user={user} />
             </div>
 
             <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
@@ -81,7 +81,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
 
                                 {/* Reuse Sidebar but override styles to fit drawer */}
                                 <div className="flex-1 overflow-y-auto [&_aside]:!w-full [&_aside]:!h-full [&_aside]:!static [&_aside]:!bg-transparent [&_aside]:!shadow-none">
-                                    <Sidebar />
+                                    <Sidebar user={user} onNavigate={() => setMobileMenuOpen(false)} />
                                 </div>
                             </div>
                         </motion.div>

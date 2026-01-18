@@ -1,12 +1,14 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
-import { Camera, Save, Edit2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Camera, Save, Edit2, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const router = useRouter();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,6 +40,12 @@ export default function ProfilePage() {
       toast.success('Profile updated successfully');
       window.location.reload();
     }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +177,15 @@ export default function ProfilePage() {
                   <Edit2 size={16} />
                 </div>
               </div>
+            </div>
+
+            <div className="md:col-span-2 pt-6 mt-6 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 rounded-lg font-bold text-sm hover:bg-red-100 transition-colors border border-red-100"
+              >
+                <LogOut size={18} /> Log Out Session
+              </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Search, Filter, Plus, Lock, User, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -12,7 +12,9 @@ export default function StaffManagementPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newRole, setNewRole] = useState('OFFICE_STAFF');
   const [newPhone, setNewPhone] = useState('');
+  const [newAvatar, setNewAvatar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchUsers = async () => {
     const res = await fetch('/api/admin/users/list');
@@ -26,6 +28,15 @@ export default function StaffManagementPage() {
     fetchUsers();
   }, []);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewAvatar(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreateUser = async () => {
     setIsLoading(true);
     try {
@@ -36,6 +47,7 @@ export default function StaffManagementPage() {
           username: newUsername,
           role: newRole,
           phone: newPhone,
+          avatar: newAvatar,
         }),
       });
 
@@ -44,6 +56,8 @@ export default function StaffManagementPage() {
         setIsDrawerOpen(false);
         setNewName('');
         setNewUsername('');
+        setNewPhone('');
+        setNewAvatar('');
         fetchUsers();
       } else {
         const data = await res.json();
@@ -57,15 +71,15 @@ export default function StaffManagementPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-[calc(100vh-4rem)]">
-      <div className="flex justify-between items-end shrink-0">
+    <div className="flex flex-col gap-6 h-full p-6 md:p-8">
+      <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Staff Management</h1>
           <p className="text-slate-500 text-sm">Manage access, roles, and PIN resets.</p>
         </div>
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="flex items-center gap-2 bg-auth-button text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-auth-buttonHover transition-colors"
+          className="flex items-center gap-2 bg-auth-button text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-auth-buttonHover transition-colors w-full md:w-auto justify-center"
         >
           <Plus size={18} /> Add New Staff
         </button>
@@ -129,13 +143,12 @@ export default function StaffManagementPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`rounded border px-2 py-1 text-xs font-bold ${
-                          user.role === 'ADMIN'
+                        className={`rounded border px-2 py-1 text-xs font-bold ${user.role === 'ADMIN'
                             ? 'border-purple-100 bg-purple-50 text-purple-700'
                             : user.role === 'DELIVERY'
                               ? 'border-orange-100 bg-orange-50 text-orange-700'
                               : 'border-blue-100 bg-blue-50 text-blue-700'
-                        }`}
+                          }`}
                       >
                         {user.role}
                       </span>
@@ -217,10 +230,24 @@ export default function StaffManagementPage() {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-auth-button hover:text-auth-button cursor-pointer transition-colors">
-                  <User size={32} />
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-auth-button hover:text-auth-button cursor-pointer transition-colors overflow-hidden"
+                >
+                  {newAvatar ? (
+                    <img src={newAvatar} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={32} />
+                  )}
                 </div>
                 <span className="text-xs font-bold text-slate-400 uppercase">Upload Photo</span>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
               </div>
 
               <div className="space-y-4">
@@ -241,7 +268,7 @@ export default function StaffManagementPage() {
                   </label>
                   <input
                     className="w-full border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button"
-                    placeholder="@username"
+                    placeholder="username"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                   />
