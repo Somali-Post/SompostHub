@@ -1,11 +1,13 @@
-﻿import React from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { ShieldCheck, HelpCircle, FileText, Lock } from 'lucide-react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row font-sans text-slate-900">
-      <div className="relative w-full lg:w-[45%] flex flex-col justify-between p-12 lg:p-16 text-white overflow-hidden bg-gradient-to-br from-auth-sidebarFrom to-auth-sidebarTo">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row font-sans text-slate-900 bg-slate-50 lg:bg-none">
+      {/* LEFT PANEL - DESKTOP ONLY (Hidden on Mobile) */}
+      <div className="hidden lg:flex relative w-[45%] flex-col justify-between p-12 lg:p-16 text-white overflow-hidden bg-gradient-to-br from-auth-sidebarFrom to-auth-sidebarTo">
+        {/* Background Grid */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -17,6 +19,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </svg>
         </div>
 
+        {/* 1. TOP: Identity */}
         <div className="relative z-10 flex items-center gap-6">
           <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-2xl shadow-black/20 shrink-0 bg-white/10 backdrop-blur-sm border border-white/20">
             <Image
@@ -36,6 +39,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
+        {/* 2. MIDDLE: Value Proposition */}
         <div className="relative z-10 flex flex-col justify-center max-w-lg">
           <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
             Employee<br />Hub
@@ -54,6 +58,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
 
+        {/* 3. BOTTOM: Trust Footer */}
         <div className="relative z-10">
           <div className="flex items-center gap-3 text-sm font-medium text-white/90 bg-white/10 w-fit px-4 py-2 rounded-lg border border-white/10 backdrop-blur-sm">
             <Lock className="w-4 h-4 text-auth-accent" />
@@ -65,10 +70,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center bg-auth-bg p-6">
+      {/* RIGHT PANEL - CONTENT CONTAINER */}
+      {/* On mobile: Full width/height, no padding. On Desktop: Centered with padding */}
+      <div className="flex-1 flex flex-col items-center justify-center p-0 lg:p-6 bg-transparent lg:bg-auth-bg w-full relative z-20">
         {children}
 
-        <div className="mt-8 flex justify-center gap-8 text-sm text-neutral-500">
+        {/* Desktop Footer Links (Hidden on Mobile) */}
+        <div className="hidden lg:flex mt-8 justify-center gap-8 text-sm text-neutral-500">
           <button className="hover:text-auth-button transition-colors flex items-center gap-1">
             <HelpCircle size={16} />
             <span>Technical Support</span>
