@@ -17,20 +17,20 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </svg>
         </div>
 
-        <div className="relative z-10 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-black/20 shrink-0">
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-2xl shadow-black/20 shrink-0 bg-white/10 backdrop-blur-sm border border-white/20">
             <Image
               src="/logos/logo.png"
               alt="Somali Post Logo"
-              width={40}
-              height={40}
+              width={64}
+              height={64}
               className="object-contain"
               priority
             />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-xl font-bold leading-none tracking-tight">Somali Post</h2>
-            <p className="text-xs font-medium opacity-70 uppercase tracking-[0.15em] mt-1.5">
+            <h2 className="text-3xl font-bold leading-none tracking-tight">Somali Post</h2>
+            <p className="text-sm font-medium opacity-80 uppercase tracking-[0.15em] mt-2">
               Federal Government of Somalia
             </p>
           </div>

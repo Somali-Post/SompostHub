@@ -275,56 +275,55 @@ export default function LoginPage() {
       </div>
 
       {/* =========================================================================
-          DESKTOP LAYOUT (Unchanged)
+          DESKTOP LAYOUT (Hidden on small screens)
          ========================================================================= */}
-      <div className="hidden md:flex w-full h-full">
-        <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border border-slate-100">
-          {/* Tab Switcher */}
-          <div className="flex bg-slate-50 p-1 rounded-lg mb-8 border border-slate-100">
+      <div className="hidden md:flex w-full h-full items-center justify-center">
+        <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-xl border border-slate-100">
+          <div className="flex bg-slate-50 p-1.5 rounded-xl mb-10 border border-slate-100">
             <button
               onClick={() => setActiveTab('staff')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+              className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
                 activeTab === 'staff'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white text-[#1a3a44] shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Staff Login
             </button>
             <button
               onClick={() => setActiveTab('admin')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+              className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
                 activeTab === 'admin'
-                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white text-[#1a3a44] shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Admin Login
             </button>
           </div>
 
-          {/* STAFF FORM DESKTOP */}
           {activeTab === 'staff' && (
             <form onSubmit={(e) => handleLogin(e)} className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    autoComplete="username"
-                    placeholder="Enter staff username"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button transition-all text-sm"
-                    value={staffUsername}
-                    onChange={(e) => setStaffUsername(e.target.value)}
-                  />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Username</label>
+                  <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <User className="text-slate-400" size={20} />
+                    <input
+                      type="text"
+                      name="username"
+                      autoComplete="username"
+                      placeholder="Enter staff username"
+                      className="bg-transparent border-none w-full text-base font-semibold text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
+                      value={staffUsername}
+                      onChange={(e) => setStaffUsername(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-semibold text-slate-500">4-Digit PIN</label>
-                    <button type="button" className="text-xs text-auth-button hover:underline font-medium">
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase">4-Digit PIN</label>
+                    <button type="button" className="text-xs text-[#2e7585] font-bold hover:underline">
                       Forgot PIN?
                     </button>
                   </div>
@@ -336,77 +335,95 @@ export default function LoginPage() {
                     onChange={(e) => setPin(e.target.value)}
                     className="sr-only"
                   />
-                  <div className="flex justify-center gap-3 mb-2 py-2">
+
+                  <div className="flex justify-center gap-4 mb-4 py-2">
                     {[0, 1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className={`w-3 h-3 rounded-full border transition-all ${
-                          i < pin.length ? 'bg-slate-800 border-slate-800' : 'bg-white border-slate-300'
+                        className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+                          i < pin.length
+                            ? 'bg-[#1a3a44] border-[#1a3a44] scale-110'
+                            : 'bg-transparent border-slate-300'
                         }`}
                       />
                     ))}
                   </div>
                 </div>
               </div>
-              <PinKeypad onKeyPress={handlePinPress} onDelete={handlePinDelete} onSubmit={() => handleLogin()} />
+
+              <div className="flex justify-center w-full my-6">
+                <PinKeypad
+                  onKeyPress={handlePinPress}
+                  onDelete={handlePinDelete}
+                  onSubmit={() => handleLogin()}
+                />
+              </div>
+
               <button
                 type="submit"
-                className="w-full mt-8 bg-auth-button hover:bg-auth-buttonHover text-white py-3 rounded-lg font-semibold shadow-sm transition-all active:scale-[0.98]"
+                className="w-full h-14 bg-[#1a3a44] hover:bg-[#151f25] text-white rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all"
               >
                 Access Hub
               </button>
             </form>
           )}
 
-          {/* ADMIN FORM DESKTOP */}
           {activeTab === 'admin' && (
             <form onSubmit={handleLogin} className="animate-in fade-in slide-in-from-left-4 duration-300">
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">Admin Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    required
-                    placeholder="admin@somalipost.gov.so"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button transition-all text-sm"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                  />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">
+                    Admin Email
+                  </label>
+                  <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <Mail className="text-slate-400" size={20} />
+                    <input
+                      type="email"
+                      name="email"
+                      autoComplete="email"
+                      required
+                      placeholder="admin@somalipost.gov.so"
+                      className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-semibold text-slate-500">Password</label>
-                    <button type="button" className="text-xs text-auth-button hover:underline font-medium">
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase">Password</label>
+                    <button type="button" className="text-xs text-[#2e7585] font-bold hover:underline">
                       Forgot password?
                     </button>
                   </div>
-                  <input
-                    type="password"
-                    name="password"
-                    autoComplete="current-password"
-                    required
-                    placeholder="Enter secure password"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-auth-button/20 focus:border-auth-button transition-all text-sm"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                  />
+                  <div className="flex items-center gap-3 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-[#2e7585]/20 focus-within:border-[#2e7585] transition-all">
+                    <Lock className="text-slate-400" size={20} />
+                    <input
+                      type="password"
+                      name="password"
+                      autoComplete="current-password"
+                      required
+                      placeholder="Enter secure password"
+                      className="bg-transparent border-none w-full text-base font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
               <button
                 type="submit"
-                className="w-full mt-8 bg-auth-button hover:bg-auth-buttonHover text-white py-3 rounded-lg font-semibold shadow-sm transition-all active:scale-[0.98]"
+                className="w-full mt-10 h-14 bg-[#1a3a44] hover:bg-[#151f25] text-white rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all"
               >
                 Admin Sign In
               </button>
             </form>
           )}
 
-          <div className="mt-8 bg-slate-50 border border-slate-100 rounded-lg p-3 flex gap-3">
-            <Info className="text-yellow-600 shrink-0 mt-0.5" size={16} />
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              <span className="font-semibold text-slate-700">Notice:</span> Authorized personnel only.
+          <div className="mt-8 flex items-center justify-center gap-2 opacity-60">
+            <ShieldCheck className="text-[#1a3a44]" size={16} />
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+              Authorized Personnel Only
             </p>
           </div>
         </div>
