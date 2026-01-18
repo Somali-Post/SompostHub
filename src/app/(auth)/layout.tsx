@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row font-sans text-slate-900 bg-slate-50 lg:bg-none">
       {/* LEFT PANEL - DESKTOP ONLY (Hidden on Mobile) */}
-      <div className="hidden lg:flex relative w-[45%] flex-col justify-between p-12 lg:p-16 text-white overflow-hidden bg-gradient-to-br from-auth-sidebarFrom to-auth-sidebarTo">
+      <div className="hidden lg:flex relative w-[45%] flex-col justify-between p-12 lg:p-16 text-white overflow-hidden bg-linear-to-br from-auth-sidebarFrom to-auth-sidebarTo">
         {/* Background Grid */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

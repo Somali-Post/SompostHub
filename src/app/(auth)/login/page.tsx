@@ -60,7 +60,7 @@ export default function LoginPage() {
          ========================================================================= */}
       <div className="md:hidden fixed inset-0 flex flex-col bg-slate-50 font-sans overflow-hidden">
         {/* 1. Curved Header with Wave & Gradient */}
-        <div className="relative bg-gradient-to-br from-[#1a3a44] to-[#2e7585] pt-12 pb-28 px-6 shrink-0 z-10">
+        <div className="relative bg-linear-to-br from-[#1a3a44] to-[#2e7585] pt-12 pb-28 px-6 shrink-0 z-10">
           {/* Dot Grid Overlay */}
           <div
             className="absolute inset-0 opacity-20 pointer-events-none"
@@ -91,8 +91,8 @@ export default function LoginPage() {
           </div>
 
           {/* Smooth Bezier Wave */}
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-            <svg className="relative block w-full h-[60px]" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-0">
+            <svg className="relative block w-full h-15" viewBox="0 0 1440 320" preserveAspectRatio="none">
               <path
                 fill="#f8fafc"
                 fillOpacity="1"
