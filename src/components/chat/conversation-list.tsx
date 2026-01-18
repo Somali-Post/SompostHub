@@ -41,7 +41,11 @@ const GROUPS = [
   },
 ];
 
-export default function ConversationList() {
+interface ConversationListProps {
+  onSelect?: (id: string) => void;
+}
+
+export default function ConversationList({ onSelect }: ConversationListProps) {
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 border-b border-slate-100">
@@ -63,11 +67,11 @@ export default function ConversationList() {
           {GROUPS.map((group) => (
             <div
               key={group.id}
-              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                group.active
+              onClick={() => onSelect?.(group.id)}
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${group.active
                   ? "bg-auth-button/10 border border-auth-button/20 shadow-sm"
                   : "hover:bg-slate-50 border border-transparent"
-              }`}
+                }`}
             >
               <div
                 className={`w-10 h-10 rounded-lg ${group.color} flex items-center justify-center text-white font-bold shadow-sm shrink-0`}
@@ -77,9 +81,8 @@ export default function ConversationList() {
               <div className="min-w-0 flex-1">
                 <div className="flex justify-between items-center mb-0.5">
                   <span
-                    className={`font-bold text-sm ${
-                      group.active ? "text-slate-900" : "text-slate-700"
-                    }`}
+                    className={`font-bold text-sm ${group.active ? "text-slate-900" : "text-slate-700"
+                      }`}
                   >
                     {group.name}
                   </span>
@@ -88,11 +91,10 @@ export default function ConversationList() {
                   </span>
                 </div>
                 <p
-                  className={`text-xs truncate ${
-                    group.active
+                  className={`text-xs truncate ${group.active
                       ? "text-auth-button font-medium"
                       : "text-slate-500"
-                  }`}
+                    }`}
                 >
                   {group.preview}
                 </p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Video, MoreVertical, Paperclip, Smile, Send } from 'lucide-react';
+import { Video, MoreVertical, Paperclip, Smile, Send, ChevronLeft } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import DailyIframe from '@daily-co/daily-js';
 import { getMessages, sendMessage } from '@/app/actions/chat';
@@ -16,7 +16,11 @@ type ChatMessage = {
   time: string;
 };
 
-export default function ChatThread() {
+interface ChatThreadProps {
+  onBack?: () => void;
+}
+
+export default function ChatThread({ onBack }: ChatThreadProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -71,7 +75,7 @@ export default function ChatThread() {
       },
       cancel: {
         label: 'Cancel',
-        onClick: () => {},
+        onClick: () => { },
       },
     });
   };
@@ -155,6 +159,14 @@ export default function ChatThread() {
 
       <header className="h-16 px-6 border-b border-slate-200 bg-white flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="md:hidden p-2 -ml-3 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
           <div className="w-10 h-10 rounded-lg bg-navy flex items-center justify-center text-white font-bold shadow-sm">
             L
           </div>
@@ -188,9 +200,8 @@ export default function ChatThread() {
           return (
             <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''} group`}>
               <div
-                className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${
-                  isMe ? 'bg-primary' : 'bg-slate-400'
-                }`}
+                className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${isMe ? 'bg-primary' : 'bg-slate-400'
+                  }`}
               >
                 {msg.sender[0]}
               </div>
@@ -203,11 +214,10 @@ export default function ChatThread() {
                 </div>
 
                 <div
-                  className={`relative p-3.5 text-sm shadow-sm leading-relaxed ${
-                    isMe
+                  className={`relative p-3.5 text-sm shadow-sm leading-relaxed ${isMe
                       ? 'bg-primary text-white rounded-2xl rounded-tr-none'
                       : 'bg-white text-slate-700 rounded-2xl rounded-tl-none border border-slate-100'
-                  }`}
+                    }`}
                 >
                   {callUrl ? (
                     <div className="flex flex-col gap-2">
@@ -251,11 +261,10 @@ export default function ChatThread() {
           <div className="relative">
             <button
               onClick={() => setShowEmoji(!showEmoji)}
-              className={`p-2.5 rounded-xl transition-colors ${
-                showEmoji
+              className={`p-2.5 rounded-xl transition-colors ${showEmoji
                   ? 'text-primary bg-primary/10'
                   : 'text-slate-400 hover:text-primary hover:bg-slate-100'
-              }`}
+                }`}
             >
               <Smile size={20} />
             </button>

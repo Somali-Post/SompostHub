@@ -10,6 +10,7 @@ import {
   Inbox,
   Users,
   FileText,
+  ClipboardList,
 } from "lucide-react";
 
 export type NavItem = {
@@ -50,6 +51,12 @@ export const NAV_SECTIONS: NavSection[] = [
         roles: ["ADMIN"],
       },
       { label: "Inbox", href: "/admin/inbox", icon: Inbox, roles: ["ADMIN"] },
+      {
+        label: "Manifests",
+        href: "/admin/manifests",
+        icon: ClipboardList,
+        roles: ["ADMIN"],
+      },
       { label: "Staff Mgmt", href: "/admin/users", icon: Users, roles: ["ADMIN"] },
       { label: "Audit Log", href: "/admin/audit", icon: FileText, roles: ["ADMIN"] },
     ],

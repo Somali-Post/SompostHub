@@ -28,6 +28,7 @@ model User {
   tasks Task[]
   notifications Notification[]
   messages Message[]
+  receptacles Receptacle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -43,8 +44,25 @@ model Scan {
   deliveredTo String?
   scannerId String
   scanner   User     @relation(fields: [scannerId], references: [id])
+  receptacleId String?
+  receptacle   Receptacle? @relation(fields: [receptacleId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Receptacle {
+  id          String   @id
+  originImpc  String
+  destImpc    String
+  weight      Float
+  status      String   @default("OPEN") // OPEN, CLOSED, IMPORTED_TO_IPS
+
+  scannedById String
+  scannedBy   User     @relation(fields: [scannedById], references: [id])
+  items       Scan[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model AuditLog {
