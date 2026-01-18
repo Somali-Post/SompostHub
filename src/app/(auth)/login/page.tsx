@@ -56,41 +56,61 @@ export default function LoginPage() {
   return (
     <>
       {/* =========================================================================
-          MOBILE LAYOUT (Native App - Reference Match)
+          MOBILE LAYOUT (Final Native App Style - White Body & Clay Shadows)
          ========================================================================= */}
-      <div className="md:hidden fixed inset-0 flex flex-col bg-white font-sans overflow-hidden">
-        {/* 1. Curved Header */}
-        <div className="relative bg-[#1a3a44] pt-12 pb-16 px-6 rounded-b-[3rem] shadow-lg shrink-0 z-10">
-          <div className="flex flex-col items-center gap-3">
-            {/* Logo Square Container (per reference) */}
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md">
+      <div className="md:hidden fixed inset-0 flex flex-col bg-slate-50 font-sans overflow-hidden">
+        {/* 1. Curved Header with Wave & Gradient */}
+        <div className="relative bg-gradient-to-br from-[#1a3a44] to-[#2e7585] pt-12 pb-28 px-6 shrink-0 z-10">
+          {/* Dot Grid Overlay */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
+            }}
+          />
+
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            {/* Transparent Logo */}
+            <div className="w-20 h-20 flex items-center justify-center mb-1">
               <Image
                 src="/logos/logo.png"
                 alt="Somali Post"
-                width={44}
-                height={44}
-                className="object-contain"
+                width={64}
+                height={64}
+                className="object-contain drop-shadow-lg"
                 priority
               />
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-white tracking-tight">Staff Login</h1>
-              <p className="text-xs text-teal-100/80 font-medium tracking-wide">
+              <p className="text-xs text-teal-100/90 font-medium tracking-wide">
                 Official Internal Portal
               </p>
             </div>
           </div>
+
+          {/* Smooth Bezier Wave */}
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+            <svg className="relative block w-full h-[60px]" viewBox="0 0 1440 320" preserveAspectRatio="none">
+              <path
+                fill="#f8fafc"
+                fillOpacity="1"
+                d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,261.3C960,256,1056,224,1152,197.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+              ></path>
+            </svg>
+          </div>
         </div>
 
-        {/* 2. Main Content (Scrollable if height is small) */}
-        <div className="flex-1 flex flex-col px-8 pt-8 pb-4 overflow-y-auto">
-          {/* Toggle Pills */}
+        {/* 2. Main Content */}
+        <div className="flex-1 flex flex-col px-6 -mt-12 relative z-20 overflow-y-auto">
+          {/* Toggle Pills (Clay Shadow) */}
           <div className="flex justify-center mb-6">
-            <div className="flex bg-slate-100 p-1 rounded-xl w-64">
+            <div className="flex bg-white p-1 rounded-xl w-64 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),0_4px_10px_rgba(0,0,0,0.05)]">
               <button
                 onClick={() => setActiveTab('staff')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'staff' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-400'
+                  activeTab === 'staff' ? 'bg-[#1a3a44] text-white shadow-md' : 'text-slate-400'
                 }`}
               >
                 Staff
@@ -98,7 +118,7 @@ export default function LoginPage() {
               <button
                 onClick={() => setActiveTab('admin')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'admin' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-400'
+                  activeTab === 'admin' ? 'bg-[#1a3a44] text-white shadow-md' : 'text-slate-400'
                 }`}
               >
                 Admin
@@ -109,16 +129,16 @@ export default function LoginPage() {
           {/* STAFF VIEW */}
           {activeTab === 'staff' && (
             <div className="flex flex-col flex-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              {/* Inputs */}
-              <div className="space-y-6 mb-4">
+              {/* Floating Input Card */}
+              <div className="bg-white rounded-2xl p-5 mb-4 space-y-5 shadow-[0_10px_20px_rgba(0,0,0,0.05),inset_0_-2px_0_rgba(0,0,0,0.05)] border border-slate-100">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                     Username
                   </label>
-                  <div className="relative">
+                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#0D9488] transition-all font-semibold text-base"
+                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-semibold text-base"
                       placeholder="Enter staff ID"
                       value={staffUsername}
                       onChange={(e) => setStaffUsername(e.target.value)}
@@ -135,29 +155,29 @@ export default function LoginPage() {
                       <div
                         key={i}
                         className={`w-4 h-4 rounded-full transition-all duration-200 ${
-                          i < pin.length ? 'bg-[#0D9488] scale-110' : 'bg-slate-200'
+                          i < pin.length
+                            ? 'bg-[#0D9488] scale-110 shadow-[0_0_10px_rgba(13,148,136,0.5)]'
+                            : 'bg-slate-200 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)]'
                         }`}
                       />
                     ))}
                   </div>
                   <div className="text-center mt-3">
-                    <button className="text-xs font-bold text-[#0D9488] hover:underline">
-                      Forgot PIN?
-                    </button>
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <button className="text-xs font-bold text-[#0D9488]">Forgot PIN?</button>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
                       Request a reset from Admin
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Keypad (Pushed to bottom) */}
-              <div className="mt-auto grid grid-cols-3 gap-3">
+              {/* Integrated Keypad */}
+              <div className="mt-auto grid grid-cols-3 gap-3 mb-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                   <button
                     key={num}
                     onClick={() => handlePinPress(num.toString())}
-                    className="h-14 bg-white border border-slate-100 rounded-xl text-2xl font-medium text-slate-700 shadow-sm active:bg-slate-50 active:scale-95 transition-all"
+                    className="h-14 bg-white rounded-xl text-2xl font-medium text-slate-700 shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-b-2 border-slate-100 active:bg-slate-50 active:scale-95 active:border-b-0 transition-all"
                   >
                     {num}
                   </button>
@@ -170,14 +190,16 @@ export default function LoginPage() {
                 </button>
                 <button
                   onClick={() => handlePinPress('0')}
-                  className="h-14 bg-white border border-slate-100 rounded-xl text-2xl font-medium text-slate-700 shadow-sm active:bg-slate-50 active:scale-95 transition-all"
+                  className="h-14 bg-white rounded-xl text-2xl font-medium text-slate-700 shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-b-2 border-slate-100 active:bg-slate-50 active:scale-95 active:border-b-0 transition-all"
                 >
                   0
                 </button>
+
+                {/* Action Button */}
                 <button
                   onClick={() => handleLogin()}
                   disabled={loading}
-                  className="h-14 bg-[#0D9488] text-white rounded-xl shadow-lg shadow-teal-500/30 active:scale-95 transition-all font-bold text-sm flex items-center justify-center"
+                  className="h-14 bg-[#0D9488] text-white rounded-xl shadow-[0_4px_14px_rgba(13,148,136,0.4)] active:scale-95 transition-all font-bold text-sm flex items-center justify-center border-t border-white/20"
                 >
                   {loading ? '...' : 'ACCESS'}
                 </button>
@@ -188,16 +210,16 @@ export default function LoginPage() {
           {/* ADMIN VIEW */}
           {activeTab === 'admin' && (
             <form onSubmit={handleLogin} className="flex flex-col flex-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="space-y-5 mt-4">
+              <div className="bg-white rounded-2xl p-6 space-y-5 mt-2 shadow-[0_10px_20px_rgba(0,0,0,0.05),inset_0_-2px_0_rgba(0,0,0,0.05)] border border-slate-100">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                     Email
                   </label>
-                  <div className="relative">
+                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                       type="email"
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#0D9488] transition-all font-medium"
+                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-medium"
                       placeholder="admin@somalipost.gov.so"
                       value={adminEmail}
                       onChange={(e) => setAdminEmail(e.target.value)}
@@ -208,12 +230,12 @@ export default function LoginPage() {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                     Password
                   </label>
-                  <div className="relative">
+                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                       type="password"
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#0D9488] transition-all font-medium"
-                      placeholder="********"
+                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-medium"
+                      placeholder="••••••••"
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
                     />
@@ -225,11 +247,12 @@ export default function LoginPage() {
                   </div>
                 </div>
               </div>
-              <div className="mt-auto pb-4">
+
+              <div className="mt-6">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 bg-[#1a3a44] text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all"
+                  className="w-full h-14 bg-[#1a3a44] text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(26,58,68,0.3)] active:scale-95 transition-all border-t border-white/10"
                 >
                   {loading ? (
                     'Signing In...'
@@ -244,7 +267,7 @@ export default function LoginPage() {
           )}
 
           {/* Footer */}
-          <div className="mt-6 text-center shrink-0">
+          <div className="mt-auto py-4 text-center shrink-0">
             <div className="flex items-center justify-center gap-1.5 mb-2 opacity-60">
               <ShieldCheck size={12} className="text-slate-400" />
               <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
@@ -256,7 +279,7 @@ export default function LoginPage() {
               <span className="text-slate-300">|</span>
               <span className="hover:text-[#0D9488] cursor-pointer">Terms of Service</span>
             </div>
-            <p className="text-[10px] text-slate-300">Copyright Somali Post Operations</p>
+            <p className="text-[10px] text-slate-300">© Somali Post Operations</p>
           </div>
         </div>
       </div>
