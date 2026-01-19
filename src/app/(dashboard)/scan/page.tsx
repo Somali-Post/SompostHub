@@ -23,12 +23,16 @@ export default function ScanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
+  const [lastScan, setLastScan] = useState('');
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
 
-  const totalItems = sessionBags.reduce((sum, bag) => sum + bag.items.length, 0);
+  const totalItems = sessionBags.reduce((sum, bag) => sum + bag.items.length, 0) + currentItems.length;
+  const totalBags = sessionBags.length + (currentBag ? 1 : 0);
+
+  const normalizeBarcode = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
   const stopScanner = async () => {
     if (!scannerRef.current) return;
@@ -48,33 +52,40 @@ export default function ScanPage() {
   };
 
   const processCode = (val: string) => {
-    const raw = val.trim().toUpperCase();
+    const raw = normalizeBarcode(val);
     if (!raw) return;
 
     if (!currentBag) {
-      if (raw.length === 29) {
-        const s9 = parseS9(raw);
-        if (s9.isValid) {
-          if (sessionBags.some((bag) => bag.id === s9.id)) {
-            toast.error('Bag already scanned in this session');
-            return;
-          }
-          setCurrentBag(s9);
-          setCurrentItems([]);
-          setInput('');
-          inputRef.current?.focus();
-          toast.success('Bag Opened');
-        } else {
-          toast.error('Invalid Receptacle ID (S9)');
+      const s9 = parseS9(raw);
+      if (s9.isValid) {
+        if (sessionBags.some((bag) => bag.id === s9.id)) {
+          toast.error('Bag already scanned in this session');
+          setLastScan('Duplicate bag ignored');
+          return;
         }
-      } else {
-        toast.warning('Scan a Receptacle (29 chars) to start a bag.');
+        setCurrentBag(s9);
+        setCurrentItems([]);
+        setInput('');
+        setLastScan(`Bag opened: ${s9.id}`);
+        inputRef.current?.focus();
+        toast.success('Bag Opened');
+        return;
       }
+
+      if (raw.length === 13) {
+        toast.warning('Scan a Receptacle (S9) to start a bag.');
+        setLastScan('Waiting for bag scan');
+        return;
+      }
+
+      toast.error('Invalid Receptacle ID (S9)');
+      setLastScan('Invalid bag scan');
       return;
     }
 
     if (raw.length === 29) {
       toast.warning('Close the current bag before scanning another receptacle.');
+      setLastScan('Close bag before new receptacle');
       return;
     }
 
@@ -82,24 +93,28 @@ export default function ScanPage() {
       if (currentItems.some((item) => item.barcode === raw)) {
         toast.warning('Item already scanned');
         setInput('');
+        setLastScan('Duplicate item ignored');
         return;
       }
       setCurrentItems((prev) => [{ barcode: raw, timestamp: new Date() }, ...prev]);
       setInput('');
+      setLastScan(`Item added: ${raw}`);
       toast.success('Item Added');
       return;
     }
 
     toast.error('Invalid Item ID (S10)');
+    setLastScan('Invalid item scan');
   };
 
   const handleScanSuccess = (decodedText: string) => {
+    const normalized = normalizeBarcode(decodedText);
     stopScanner()
       .catch(() => {})
       .finally(() => {
         setIsScanning(false);
-        setInput(decodedText);
-        processCode(decodedText);
+        setInput(normalized);
+        processCode(normalized);
       });
   };
 
@@ -185,6 +200,7 @@ export default function ScanPage() {
     };
 
     setSessionBags((prev) => [newBagEntry, ...prev]);
+    setLastScan(`Bag closed: ${currentBag.id}`);
     setCurrentBag(null);
     setCurrentItems([]);
     setInput('');
@@ -227,6 +243,7 @@ export default function ScanPage() {
         setCurrentBag(null);
         setCurrentItems([]);
         setInput('');
+        setLastScan('');
         inputRef.current?.focus();
       } else {
         toast.error('Failed to save session');
@@ -360,7 +377,7 @@ export default function ScanPage() {
         </div>
         <div className="text-right">
           <p className="text-xs font-bold text-slate-400 uppercase">Total Bags</p>
-          <p className="text-3xl font-black text-auth-button">{sessionBags.length}</p>
+          <p className="text-3xl font-black text-auth-button">{totalBags}</p>
           <p className="text-xs text-slate-400 mt-1">{totalItems} items</p>
         </div>
       </div>
@@ -396,24 +413,34 @@ export default function ScanPage() {
               </button>
             </form>
           </div>
+          {lastScan && (
+            <p className="text-xs text-slate-500 px-1" aria-live="polite">
+              Last scan: {lastScan}
+            </p>
+          )}
 
           {currentBag ? (
-            <div className="flex-1 bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden shadow-sm animate-in slide-in-from-bottom-2">
-              <div className="p-4 bg-auth-button text-white flex justify-between items-center">
+            <div className="bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden shadow-sm animate-in slide-in-from-bottom-2">
+              <div className="p-4 bg-auth-button text-white flex justify-between items-center gap-3">
                 <div>
                   <p className="text-xs font-bold opacity-80 uppercase">Active Receptacle</p>
                   <p className="font-mono font-bold text-lg truncate max-w-[200px] md:max-w-none">
                     {currentBag.id}
                   </p>
                 </div>
-                <button
-                  onClick={closeBag}
-                  className="bg-white text-auth-button px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100"
-                >
-                  Close Bag
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-full">
+                    {currentItems.length} Items
+                  </span>
+                  <button
+                    onClick={closeBag}
+                    className="bg-white text-auth-button px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100"
+                  >
+                    Close Bag
+                  </button>
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-2">
+              <div className="max-h-60 md:max-h-[60vh] overflow-y-auto p-2 space-y-2">
                 {currentItems.length > 0 ? (
                   currentItems.map((item) => (
                     <div
@@ -453,6 +480,17 @@ export default function ScanPage() {
             Session Manifest
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
+            {currentBag && (
+              <div className="p-3 border border-auth-button/20 rounded-lg bg-auth-button/5">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-auth-button">ACTIVE BAG</span>
+                  <span className="text-[10px] bg-white px-2 py-0.5 rounded-full font-bold">
+                    {currentItems.length} Items
+                  </span>
+                </div>
+                <p className="font-mono text-xs text-slate-800 truncate">{currentBag.id}</p>
+              </div>
+            )}
             {sessionBags.map((bag, i) => (
               <div
                 key={bag.id}
@@ -467,11 +505,28 @@ export default function ScanPage() {
                 <p className="font-mono text-xs text-slate-800 truncate">{bag.id}</p>
               </div>
             ))}
-            {sessionBags.length === 0 && (
+            {sessionBags.length === 0 && !currentBag && (
               <p className="text-center text-xs text-slate-400 py-8">No bags closed yet.</p>
             )}
           </div>
           <div className="p-4 border-t border-slate-100">
+            {currentBag ? (
+              <button
+                onClick={closeBag}
+                className="w-full py-3 mb-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50"
+              >
+                Close Bag
+              </button>
+            ) : (
+              sessionBags.length > 0 && (
+                <button
+                  onClick={handleNextBag}
+                  className="w-full py-3 mb-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                >
+                  Next Bag
+                </button>
+              )
+            )}
             <button
               onClick={openReview}
               disabled={sessionBags.length === 0 || isSubmitting || !!currentBag}
@@ -491,6 +546,17 @@ export default function ScanPage() {
           Session Manifest
         </div>
         <div className="max-h-40 overflow-y-auto p-2 space-y-2">
+          {currentBag && (
+            <div className="p-3 border border-auth-button/20 rounded-lg bg-auth-button/5">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-bold text-xs text-auth-button">ACTIVE BAG</span>
+                <span className="text-[10px] bg-white px-2 py-0.5 rounded-full font-bold">
+                  {currentItems.length} Items
+                </span>
+              </div>
+              <p className="font-mono text-xs text-slate-800 truncate">{currentBag.id}</p>
+            </div>
+          )}
           {sessionBags.map((bag, i) => (
             <div
               key={bag.id}
@@ -505,11 +571,28 @@ export default function ScanPage() {
               <p className="font-mono text-xs text-slate-800 truncate">{bag.id}</p>
             </div>
           ))}
-          {sessionBags.length === 0 && (
+          {sessionBags.length === 0 && !currentBag && (
             <p className="text-center text-xs text-slate-400 py-4">No bags closed yet.</p>
           )}
         </div>
         <div className="p-4 border-t border-slate-100">
+          {currentBag ? (
+            <button
+              onClick={closeBag}
+              className="w-full py-3 mb-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50"
+            >
+              Close Bag
+            </button>
+          ) : (
+            sessionBags.length > 0 && (
+              <button
+                onClick={handleNextBag}
+                className="w-full py-3 mb-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+              >
+                Next Bag
+              </button>
+            )
+          )}
           <button
             onClick={openReview}
             disabled={sessionBags.length === 0 || isSubmitting || !!currentBag}
