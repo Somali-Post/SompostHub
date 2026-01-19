@@ -139,7 +139,6 @@ export default function ScanPage() {
           fps: 12,
           qrbox: { width: 260, height: 260 },
           aspectRatio: 1.0,
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
           formatsToSupport: [
             Html5QrcodeSupportedFormats.CODE_128,
             Html5QrcodeSupportedFormats.CODE_39,
