@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import { FileText, Image as ImageIcon, Mic, Plus, Send, Video } from 'lucide-react';
 import { getMessages, sendMessage } from '@/app/actions/chat';
 
-export default function ChatThread({ chatId }: { chatId: string }) {
+export default function ChatThread({
+  chatId,
+  onToggleInfo,
+}: {
+  chatId: string;
+  onToggleInfo: () => void;
+}) {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [showAttach, setShowAttach] = useState(false);
@@ -57,7 +63,10 @@ export default function ChatThread({ chatId }: { chatId: string }) {
         }}
       ></div>
 
-      <div className="h-16 bg-slate-50 border-b border-slate-200 flex items-center px-4 shrink-0 z-10">
+      <div
+        className="h-16 bg-slate-50 border-b border-slate-200 flex items-center px-4 shrink-0 z-10 cursor-pointer hover:bg-slate-100 transition-colors"
+        onClick={onToggleInfo}
+      >
         <div className="w-10 h-10 rounded-full bg-slate-300 mr-3"></div>
         <div>
           <h2 className="font-bold text-slate-800">Chat Name</h2>

@@ -131,6 +131,25 @@ export async function createDirectChat(targetUserId: string) {
   return newChat.id;
 }
 
+export async function getGroupDetails(conversationId: string) {
+  const session = await getSession();
+  if (!session) return null;
+
+  const convo = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    include: {
+      participants: {
+        include: { user: true },
+      },
+    },
+  });
+
+  return {
+    ...convo,
+    isCurrentUserAdmin: session.role === 'ADMIN',
+  };
+}
+
 export async function removeParticipant(conversationId: string, userIdToRemove: string) {
   const session = await getSession();
   if (!session || session.role !== 'ADMIN') return { error: 'Unauthorized' };
