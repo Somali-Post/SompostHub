@@ -158,14 +158,40 @@ export default function SettingsPage() {
         {activeTab === 'notifications' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-2">Notifications</h3>
-              <p className="text-sm text-slate-500">
-                Notification preferences will be available in a future update.
-              </p>
+              <h3 className="font-bold text-slate-900 mb-4">Email Alerts</h3>
+              <div className="space-y-4">
+                <ToggleRow
+                  label="New Task Assignments"
+                  desc="Get emailed when assigned a task."
+                />
+                <ToggleRow
+                  label="System Announcements"
+                  desc="Major updates and maintenance."
+                />
+                <ToggleRow
+                  label="Security Alerts"
+                  desc="Login attempts and password changes."
+                />
+              </div>
             </div>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ToggleRow({ label, desc }: any) {
+  return (
+    <div className="flex items-center justify-between py-2">
+      <div>
+        <p className="text-sm font-medium text-slate-700">{label}</p>
+        <p className="text-xs text-slate-500">{desc}</p>
+      </div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" defaultChecked className="sr-only peer" />
+        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-auth-button"></div>
+      </label>
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { getInboxMessages } from '@/app/actions/inbox';
+import { getTasks } from '@/app/actions/tasks';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
 export default async function AdminInboxPage() {
   const messages = await getInboxMessages();
+  const tasks = await getTasks();
 
   return (
     <div className="flex h-full w-full bg-white border-t border-slate-200 overflow-hidden">
@@ -64,15 +66,28 @@ export default async function AdminInboxPage() {
           </div>
           <div className="space-y-4 relative">
             <div className="absolute left-[2.25rem] top-2 bottom-0 w-px bg-slate-200"></div>
-            <div className="flex gap-4 relative">
-              <div className="flex flex-col items-center w-12 shrink-0 pt-1">
-                <span className="text-xs font-bold text-slate-500">09:00</span>
-                <div className="w-2 h-2 rounded-full bg-white border-2 border-slate-300 mt-1 z-10"></div>
-              </div>
-              <div className="flex-1 bg-white p-3 rounded-lg border-l-4 shadow-sm border-auth-button">
-                <p className="text-xs font-bold text-slate-900">Staff Meeting</p>
-              </div>
-            </div>
+            {tasks.length > 0 ? (
+              tasks.map((task: any) => (
+                <div key={task.id} className="flex gap-4 relative">
+                  <div className="flex flex-col items-center w-12 shrink-0 pt-1">
+                    <span className="text-xs font-bold text-slate-500">
+                      {new Date(task.createdAt).getHours()}:00
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-white border-2 border-slate-300 mt-1 z-10"></div>
+                  </div>
+                  <div
+                    className={`flex-1 bg-white p-3 rounded-lg border-l-4 shadow-sm ${
+                      task.priority === 'HIGH' ? 'border-red-500' : 'border-auth-button'
+                    }`}
+                  >
+                    <p className="text-xs font-bold text-slate-900">{task.title}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{task.status}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-xs text-slate-400 py-4">No tasks scheduled.</p>
+            )}
           </div>
         </div>
       </div>
