@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Box, CheckCircle, Camera, X } from 'lucide-react';
+import { ArrowRight, Box, CheckCircle, Camera, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseS9, type S9Data } from '@/lib/s9';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -19,6 +19,7 @@ export default function ScanPage() {
   const [isScanning, setIsScanning] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null); // Added for file input
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
@@ -31,8 +32,8 @@ export default function ScanPage() {
         try {
           // Check if element exists
           if (!document.getElementById('reader')) {
-             console.error("Reader element not found");
-             return;
+            console.error("Reader element not found");
+            return;
           }
 
           scanner = new Html5Qrcode('reader');
@@ -56,26 +57,26 @@ export default function ScanPage() {
             )
             .catch((err) => {
               console.error('Failed to start scanner', err);
-              setIsScanning(false);
-              toast.error('Camera start failed. Please allow camera access.');
+              // Do not close scanning automatically on error, user might want to switch to file upload
+              toast.error('Camera start failed. Try "Take Photo" instead.');
             });
         } catch (e) {
           console.error("Error initializing Html5Qrcode", e);
-          setIsScanning(false);
+          // Do not close scanning automatically on error, user might want to switch to file upload
         }
       }, 300); // 300ms delay to be safe
     }
 
     return () => {
-        clearTimeout(timer);
-        if (scannerRef.current && scannerRef.current.isScanning) {
-            scannerRef.current.stop().then(() => {
-                scannerRef.current?.clear();
-                scannerRef.current = null;
-            }).catch(err => {
-                console.error("Cleanup failed", err); 
-            });
-        }
+      clearTimeout(timer);
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().then(() => {
+          scannerRef.current?.clear();
+          scannerRef.current = null;
+        }).catch(err => {
+          console.error("Cleanup failed", err);
+        });
+      }
     };
   }, [isScanning]);
 
@@ -117,22 +118,46 @@ export default function ScanPage() {
   const handleScanSuccess = (decodedText: string) => {
     // Stop scanning immediately
     if (scannerRef.current) {
-        scannerRef.current.stop().then(() => {
-           scannerRef.current?.clear();
-           setIsScanning(false);
-           setInput(decodedText);
-           processCode(decodedText);
-        }).catch((err) => {
-            console.error("Failed to stop scanner", err);
-            setIsScanning(false);
-            // Even if stop fails, proceed to process
-            setInput(decodedText);
-            processCode(decodedText);
-        });
-    } else {
+      scannerRef.current.stop().then(() => {
+        scannerRef.current?.clear();
         setIsScanning(false);
         setInput(decodedText);
         processCode(decodedText);
+      }).catch((err) => {
+        console.error("Failed to stop scanner", err);
+        setIsScanning(false);
+        // Even if stop fails, proceed to process
+        setInput(decodedText);
+        processCode(decodedText);
+      });
+    } else {
+      setIsScanning(false);
+      setInput(decodedText);
+      processCode(decodedText);
+    }
+  };
+
+  const handleFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+    setIsScanning(false); // Close live scanner overlay
+    const toastId = toast.loading('Processing image...');
+
+    try {
+      // Use a hidden element for file scanning
+      const html5QrCode = new Html5Qrcode("reader-hidden");
+      const decodedText = await html5QrCode.scanFile(file, true);
+      toast.dismiss(toastId);
+      setInput(decodedText);
+      processCode(decodedText);
+    } catch (err) {
+      console.error("File scan failed", err);
+      toast.dismiss(toastId);
+      toast.error("Could not detect barcode in image. Try again.");
+    } finally {
+      // Clear the file input value to allow scanning the same file again if needed
+      e.target.value = '';
     }
   };
 
@@ -174,27 +199,50 @@ export default function ScanPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-full bg-slate-50 p-4 md:p-6 gap-4 md:gap-6 overflow-hidden relative">
-      
+
+      {/* Hidden Reader for File Scan */}
+      <div id="reader-hidden" className="hidden"></div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        hidden
+        accept="image/*"
+        capture="environment" // Prefer environment (rear) camera
+        onChange={handleFileScan}
+      />
+
       {/* Scanner Overlay */}
       {isScanning && (
         <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-sm bg-black rounded-xl overflow-hidden relative aspect-square">
-             <div id="reader" className="w-full h-full"></div>
-             {/* Visual guide */}
-             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-[80%] h-[80%] border-2 border-white/50 rounded-lg"></div>
-             </div>
+            <div id="reader" className="w-full h-full"></div>
+            {/* Visual guide */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[80%] h-[80%] border-2 border-white/50 rounded-lg"></div>
+            </div>
           </div>
           <p className="text-white mt-4 text-sm opacity-80 text-center">
-            Point camera at a barcode.<br/>
-            Supports S9 (Bag) and S10 (Item) labels.
+            Point camera at a barcode.<br />
+            Or take a photo if auto-scan fails.
           </p>
-          <button 
-            onClick={() => setIsScanning(false)} 
-            className="mt-8 bg-white text-black px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-200"
-          >
-            <X size={20} /> Stop Scanning
-          </button>
+
+          <div className="flex flex-col gap-3 mt-6 w-full max-w-xs">
+            {/* Take Photo Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white/30 active:scale-95 transition-all"
+            >
+              <ImageIcon size={20} /> Take Photo / Upload
+            </button>
+
+            {/* Stop Button */}
+            <button
+              onClick={() => setIsScanning(false)}
+              className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-slate-200 active:scale-95 transition-all"
+            >
+              <X size={20} /> Stop Scanning
+            </button>
+          </div>
         </div>
       )}
 
