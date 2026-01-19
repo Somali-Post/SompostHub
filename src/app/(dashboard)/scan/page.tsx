@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Box, CheckCircle, Camera, Image as ImageIcon, Layers, X } from 'lucide-react';
+import { ArrowRight, Box, CheckCircle, Camera, Layers, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseS9, type S9Data } from '@/lib/s9';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 type ScannedItem = {
   barcode: string;
@@ -25,8 +25,8 @@ export default function ScanPage() {
   const [isReviewing, setIsReviewing] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isStartingRef = useRef(false);
 
   const totalItems = sessionBags.reduce((sum, bag) => sum + bag.items.length, 0);
 
@@ -103,42 +103,65 @@ export default function ScanPage() {
       });
   };
 
+  const startScanner = async () => {
+    if (isStartingRef.current) return;
+    if (scannerRef.current?.isScanning) return;
+
+    isStartingRef.current = true;
+    try {
+      if (!document.getElementById('reader')) {
+        console.error('Reader element not found');
+        return;
+      }
+
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode('reader');
+      }
+
+      await scannerRef.current.start(
+        { facingMode: 'environment' },
+        {
+          fps: 12,
+          qrbox: { width: 260, height: 260 },
+          aspectRatio: 1.0,
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+          ],
+        },
+        (decodedText) => {
+          handleScanSuccess(decodedText);
+        },
+        () => {}
+      );
+    } catch (err) {
+      console.error('Failed to start scanner', err);
+      toast.error('Camera start failed. Try again.');
+    } finally {
+      isStartingRef.current = false;
+    }
+  };
+
+  const handleManualScan = async () => {
+    if (!isScanning) {
+      setIsScanning(true);
+      return;
+    }
+    await stopScanner();
+    await startScanner();
+  };
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
     if (isScanning) {
       timer = setTimeout(() => {
-        try {
-          if (!document.getElementById('reader')) {
-            console.error('Reader element not found');
-            return;
-          }
-
-          if (!scannerRef.current) {
-            scannerRef.current = new Html5Qrcode('reader');
-          }
-
-          scannerRef.current
-            .start(
-              { facingMode: 'environment' },
-              {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-              },
-              (decodedText) => {
-                handleScanSuccess(decodedText);
-              },
-              () => {}
-            )
-            .catch((err) => {
-              console.error('Failed to start scanner', err);
-              toast.error('Camera start failed. Try "Take Photo" instead.');
-            });
-        } catch (e) {
-          console.error('Error initializing Html5Qrcode', e);
-        }
-      }, 300);
+        void startScanner();
+      }, 250);
     }
 
     return () => {
@@ -146,39 +169,6 @@ export default function ScanPage() {
       void stopScanner();
     };
   }, [isScanning]);
-
-  const handleOpenFileCapture = async () => {
-    setIsScanning(false);
-    await stopScanner();
-    fileInputRef.current?.click();
-  };
-
-  const handleFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    const file = e.target.files[0];
-    const toastId = toast.loading('Processing image...');
-
-    try {
-      await stopScanner();
-      if (!scannerRef.current) {
-        if (!document.getElementById('reader')) {
-          throw new Error('Reader element not found');
-        }
-        scannerRef.current = new Html5Qrcode('reader');
-      }
-      const decodedText = await scannerRef.current.scanFile(file, false);
-      toast.dismiss(toastId);
-      setInput(decodedText);
-      processCode(decodedText);
-    } catch (err) {
-      console.error('File scan failed', err);
-      toast.dismiss(toastId);
-      toast.error('Could not detect barcode in image. Try again.');
-    } finally {
-      e.target.value = '';
-    }
-  };
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -327,15 +317,6 @@ export default function ScanPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 p-4 md:p-6 gap-4 md:gap-6 overflow-hidden relative">
-      <input
-        type="file"
-        ref={fileInputRef}
-        hidden
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileScan}
-      />
-
       <div
         className={`fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4 transition-opacity ${
           isScanning ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -350,20 +331,20 @@ export default function ScanPage() {
         <p className="text-white mt-4 text-sm opacity-80 text-center">
           Point camera at a barcode.
           <br />
-          Or take a photo if auto-scan fails.
+          Auto-detect is on. Tap Scan to retry.
         </p>
 
         <div className="flex flex-col gap-3 mt-6 w-full max-w-xs">
           <button
-            onClick={handleOpenFileCapture}
-            className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white/30 active:scale-95 transition-all"
+            onClick={() => void handleManualScan()}
+            className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-slate-200 active:scale-95 transition-all"
           >
-            <ImageIcon size={20} /> Take Photo / Upload
+            <Camera size={20} /> Scan
           </button>
 
           <button
             onClick={() => setIsScanning(false)}
-            className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-slate-200 active:scale-95 transition-all"
+            className="bg-white/20 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-white/30 active:scale-95 transition-all"
           >
             <X size={20} /> Stop Scanning
           </button>
