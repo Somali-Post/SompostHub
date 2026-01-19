@@ -24,8 +24,10 @@ export default function ScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const [lastScan, setLastScan] = useState('');
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
 
@@ -33,6 +35,90 @@ export default function ScanPage() {
   const totalBags = sessionBags.length + (currentBag ? 1 : 0);
 
   const normalizeBarcode = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+  const extractIdsFromText = (text: string) => {
+    const normalized = normalizeBarcode(text);
+    const s9s: string[] = [];
+    const s10s: string[] = [];
+    const seen = new Set<string>();
+
+    for (let i = 0; i <= normalized.length - 29; i += 1) {
+      const candidate = normalized.slice(i, i + 29);
+      const parsed = parseS9(candidate);
+      if (parsed.isValid && !seen.has(parsed.id)) {
+        s9s.push(parsed.id);
+        seen.add(parsed.id);
+      }
+    }
+
+    const s10Matches = normalized.match(/[A-Z]{2}[0-9]{9}[A-Z]{2}/g) ?? [];
+    for (const match of s10Matches) {
+      if (!seen.has(match)) {
+        s10s.push(match);
+        seen.add(match);
+      }
+    }
+
+    return { s9s, s10s };
+  };
+
+  const applyOcrResults = (s9s: string[], s10s: string[]) => {
+    let activeBag = currentBag;
+    let items = currentItems;
+    let openedBag: S9Data | null = null;
+
+    if (!activeBag && s9s.length > 0) {
+      const nextId = s9s.find((id) => !sessionBags.some((bag) => bag.id === id));
+      if (nextId) {
+        const parsed = parseS9(nextId);
+        if (parsed.isValid) {
+          activeBag = parsed;
+          items = [];
+          openedBag = parsed;
+        } else {
+          setLastScan('Invalid bag scan');
+        }
+      } else {
+        setLastScan('Duplicate bag ignored');
+      }
+    } else if (activeBag && s9s.length > 0) {
+      setLastScan('Close bag before new receptacle');
+      toast.warning('Close the current bag before scanning another receptacle.');
+    }
+
+    const addedItems: ScannedItem[] = [];
+    if (activeBag && s10s.length > 0) {
+      const existing = new Set(items.map((item) => item.barcode));
+      for (const code of s10s) {
+        if (!existing.has(code)) {
+          existing.add(code);
+          addedItems.push({ barcode: code, timestamp: new Date() });
+        }
+      }
+      if (addedItems.length > 0) {
+        items = [...addedItems, ...items];
+      }
+    } else if (!activeBag && s10s.length > 0) {
+      setLastScan('Waiting for bag scan');
+      toast.warning('Scan a Receptacle (S9) to start a bag.');
+    }
+
+    if (openedBag) {
+      setCurrentBag(openedBag);
+      setCurrentItems(items);
+      setInput('');
+      setLastScan(`Bag opened: ${openedBag.id}`);
+      toast.success('Bag Opened');
+    } else if (activeBag && addedItems.length > 0) {
+      setCurrentItems(items);
+      setInput('');
+      setLastScan(`OCR added ${addedItems.length} items`);
+      toast.success(`${addedItems.length} item${addedItems.length === 1 ? '' : 's'} added`);
+    } else if (!openedBag && addedItems.length === 0 && s9s.length === 0 && s10s.length === 0) {
+      setLastScan('No IDs found in image');
+      toast.error('No IDs found in image.');
+    }
+  };
 
   const stopScanner = async () => {
     if (!scannerRef.current) return;
@@ -176,6 +262,33 @@ export default function ScanPage() {
       void stopScanner();
     };
   }, [isScanning]);
+
+  const handleOcrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+    setIsOcrProcessing(true);
+    const toastId = toast.loading('Reading image...');
+
+    try {
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng');
+      const result = await worker.recognize(file);
+      await worker.terminate();
+      toast.dismiss(toastId);
+
+      const { s9s, s10s } = extractIdsFromText(result.data.text || '');
+      applyOcrResults(s9s, s10s);
+    } catch (err) {
+      console.error('OCR failed', err);
+      toast.dismiss(toastId);
+      toast.error('Could not read IDs from image.');
+      setLastScan('OCR failed');
+    } finally {
+      setIsOcrProcessing(false);
+      e.target.value = '';
+    }
+  };
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,6 +439,14 @@ export default function ScanPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 p-4 md:p-6 gap-4 md:gap-6 overflow-hidden relative">
+      <input
+        ref={fileInputRef}
+        type="file"
+        hidden
+        accept="image/*"
+        capture="environment"
+        onChange={handleOcrUpload}
+      />
       <div
         className={`fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4 transition-opacity ${
           isScanning ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -410,6 +531,19 @@ export default function ScanPage() {
               Last scan: {lastScan}
             </p>
           )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isOcrProcessing}
+              className="w-full md:w-auto px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold uppercase tracking-wide hover:bg-slate-50 disabled:opacity-60"
+            >
+              {isOcrProcessing ? 'Processing OCR...' : 'Upload Image (OCR)'}
+            </button>
+            {isOcrProcessing && (
+              <span className="text-xs text-slate-400">This can take a few seconds.</span>
+            )}
+          </div>
 
           {currentBag ? (
             <div className="bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden shadow-sm animate-in slide-in-from-bottom-2">
