@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { ArrowRight, Box, CheckCircle, Camera } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, Box, CheckCircle, Camera, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseS9, type S9Data } from '@/lib/s9';
+import { Html5Qrcode } from 'html5-qrcode';
 
 type ScannedItem = {
   barcode: string;
@@ -15,14 +16,71 @@ export default function ScanPage() {
   const [items, setItems] = useState<ScannedItem[]>([]);
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
-  const handleScan = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input) return;
+  useEffect(() => {
+    let scanner: Html5Qrcode | null = null;
+    let timer: NodeJS.Timeout;
 
-    const raw = input.trim().toUpperCase();
+    if (isScanning) {
+      // Small delay to ensure DOM is ready and 'reader' div is mounted
+      timer = setTimeout(() => {
+        try {
+          // Check if element exists
+          if (!document.getElementById('reader')) {
+             console.error("Reader element not found");
+             return;
+          }
+
+          scanner = new Html5Qrcode('reader');
+          scannerRef.current = scanner;
+
+          scanner
+            .start(
+              { facingMode: 'environment' },
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+              },
+              (decodedText) => {
+                // Success
+                handleScanSuccess(decodedText);
+              },
+              (errorMessage) => {
+                // ignore errors during scanning
+              }
+            )
+            .catch((err) => {
+              console.error('Failed to start scanner', err);
+              setIsScanning(false);
+              toast.error('Camera start failed. Please allow camera access.');
+            });
+        } catch (e) {
+          console.error("Error initializing Html5Qrcode", e);
+          setIsScanning(false);
+        }
+      }, 300); // 300ms delay to be safe
+    }
+
+    return () => {
+        clearTimeout(timer);
+        if (scannerRef.current && scannerRef.current.isScanning) {
+            scannerRef.current.stop().then(() => {
+                scannerRef.current?.clear();
+                scannerRef.current = null;
+            }).catch(err => {
+                console.error("Cleanup failed", err); 
+            });
+        }
+    };
+  }, [isScanning]);
+
+  const processCode = (val: string) => {
+    const raw = val.trim().toUpperCase();
 
     if (!currentBag) {
       if (raw.length === 29) {
@@ -56,6 +114,34 @@ export default function ScanPage() {
     toast.error('Invalid Item ID. Expecting 13 characters.');
   };
 
+  const handleScanSuccess = (decodedText: string) => {
+    // Stop scanning immediately
+    if (scannerRef.current) {
+        scannerRef.current.stop().then(() => {
+           scannerRef.current?.clear();
+           setIsScanning(false);
+           setInput(decodedText);
+           processCode(decodedText);
+        }).catch((err) => {
+            console.error("Failed to stop scanner", err);
+            setIsScanning(false);
+            // Even if stop fails, proceed to process
+            setInput(decodedText);
+            processCode(decodedText);
+        });
+    } else {
+        setIsScanning(false);
+        setInput(decodedText);
+        processCode(decodedText);
+    }
+  };
+
+  const handleScan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input) return;
+    processCode(input);
+  };
+
   const handleFinishBag = async () => {
     if (!currentBag) return;
     setIsSubmitting(true);
@@ -87,7 +173,31 @@ export default function ScanPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full bg-slate-50 p-4 md:p-6 gap-4 md:gap-6 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-full bg-slate-50 p-4 md:p-6 gap-4 md:gap-6 overflow-hidden relative">
+      
+      {/* Scanner Overlay */}
+      {isScanning && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-black rounded-xl overflow-hidden relative aspect-square">
+             <div id="reader" className="w-full h-full"></div>
+             {/* Visual guide */}
+             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[80%] h-[80%] border-2 border-white/50 rounded-lg"></div>
+             </div>
+          </div>
+          <p className="text-white mt-4 text-sm opacity-80 text-center">
+            Point camera at a barcode.<br/>
+            Supports S9 (Bag) and S10 (Item) labels.
+          </p>
+          <button 
+            onClick={() => setIsScanning(false)} 
+            className="mt-8 bg-white text-black px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-200"
+          >
+            <X size={20} /> Stop Scanning
+          </button>
+        </div>
+      )}
+
       <div className="shrink-0 md:hidden flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-black text-slate-900">Scan Station</h1>
@@ -102,7 +212,7 @@ export default function ScanPage() {
         {/* Mobile Camera Button */}
         <button
           className="md:hidden flex-1 max-h-64 bg-slate-900 text-white rounded-3xl flex flex-col items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"
-          onClick={() => inputRef.current?.focus()}
+          onClick={() => setIsScanning(true)}
         >
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center animate-pulse">
             <Camera size={40} />
