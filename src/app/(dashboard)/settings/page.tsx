@@ -73,7 +73,10 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium text-slate-700">Theme Preference</p>
                   <p className="text-xs text-slate-500">Choose how the app looks to you.</p>
                 </div>
-                <select className="bg-slate-50 border border-slate-200 rounded-lg text-sm p-2">
+                <select
+                  className="bg-slate-50 border border-slate-200 rounded-lg text-sm p-2"
+                  onChange={() => toast.info('Theme settings saved locally')}
+                >
                   <option>Light Mode</option>
                   <option>Dark Mode</option>
                   <option>System Default</option>
@@ -148,6 +151,17 @@ export default function SettingsPage() {
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+              <h3 className="font-bold text-slate-900 mb-2">Notifications</h3>
+              <p className="text-sm text-slate-500">
+                Notification preferences will be available in a future update.
+              </p>
             </div>
           </div>
         )}

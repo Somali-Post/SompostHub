@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { MessageSquarePlus, MoreVertical, Search } from 'lucide-react';
 import { getAllStaff, getConversations, createDirectChat } from '@/app/actions/chat';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 export default function ConversationList({ onSelect }: { onSelect: (id: string) => void }) {
   const [chats, setChats] = useState<any[]>([]);
@@ -56,10 +57,16 @@ export default function ConversationList({ onSelect }: { onSelect: (id: string) 
 
           {showMenu && (
             <div className="absolute right-0 top-8 w-48 bg-white shadow-xl rounded-lg border border-slate-100 z-50 py-2">
-              <button className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">
+              <button
+                onClick={() => toast.info('Feature coming soon')}
+                className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-slate-700"
+              >
                 New group
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">
+              <button
+                onClick={() => toast.info('Feature coming soon')}
+                className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-slate-700"
+              >
                 Starred messages
               </button>
               <button className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">

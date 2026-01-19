@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import {
   BookOpen,
   ChevronRight,
@@ -10,6 +11,7 @@ import {
   Truck,
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 const CATEGORIES = [
   {
@@ -49,6 +51,8 @@ type ArticleRowProps = {
 };
 
 export default function KnowledgeBasePage() {
+  const hasShownSearchToast = useRef(false);
+
   return (
     <div className="flex h-full flex-col gap-8 overflow-y-auto p-6 md:p-8">
       <div className="mx-auto w-full max-w-3xl space-y-6 text-center">
@@ -65,6 +69,12 @@ export default function KnowledgeBasePage() {
             type="text"
             placeholder="Search for articles (e.g. 'Customs Codes')..."
             className="h-14 w-full rounded-xl border-2 border-slate-200 pl-12 pr-4 text-lg transition-all focus:border-auth-button focus:ring-0"
+            onChange={() => {
+              if (!hasShownSearchToast.current) {
+                toast.info('Search is simulated');
+                hasShownSearchToast.current = true;
+              }
+            }}
           />
         </div>
       </div>
