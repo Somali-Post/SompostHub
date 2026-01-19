@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Box, CheckCircle, Camera, Layers, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseS9, type S9Data } from '@/lib/s9';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 type ScannedItem = {
   barcode: string;
@@ -139,13 +139,6 @@ export default function ScanPage() {
           fps: 12,
           qrbox: { width: 260, height: 260 },
           aspectRatio: 1.0,
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-          ],
         },
         (decodedText) => {
           handleScanSuccess(decodedText);
