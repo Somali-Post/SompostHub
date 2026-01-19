@@ -51,6 +51,7 @@ export async function PUT(req: Request) {
         email: data.email,
         phone: data.phone,
         location: data.location,
+        jobTitle: data.jobTitle,
         avatar: data.avatar,
       },
       select: {
@@ -58,6 +59,7 @@ export async function PUT(req: Request) {
         username: true,
         fullName: true,
         role: true,
+        jobTitle: true,
         email: true,
         phone: true,
         location: true,

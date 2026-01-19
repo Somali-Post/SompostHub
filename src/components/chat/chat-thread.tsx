@@ -1,288 +1,134 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Video, MoreVertical, Paperclip, Smile, Send, ChevronLeft } from 'lucide-react';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import DailyIframe from '@daily-co/daily-js';
+import { FileText, Image as ImageIcon, Mic, Plus, Send, Video } from 'lucide-react';
 import { getMessages, sendMessage } from '@/app/actions/chat';
-import { createDailyRoom } from '@/app/actions/daily';
-import { toast } from 'sonner';
 
-type ChatMessage = {
-  id: string;
-  text: string;
-  sender: string;
-  senderId: string;
-  time: string;
-};
-
-interface ChatThreadProps {
-  onBack?: () => void;
-}
-
-export default function ChatThread({ onBack }: ChatThreadProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState('');
-  const [showEmoji, setShowEmoji] = useState(false);
+export default function ChatThread({ chatId }: { chatId: string }) {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState('');
+  const [showAttach, setShowAttach] = useState(false);
   const [currentUserId, setCurrentUserId] = useState('');
-  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const callFrameRef = useRef<HTMLDivElement>(null);
-  const callObjectRef = useRef<ReturnType<typeof DailyIframe.createFrame> | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/api/me')
       .then((response) => (response.ok ? response.json() : null))
       .then((user) => setCurrentUserId(user?.id || ''))
       .catch(() => setCurrentUserId(''));
-
-    const fetchMsgs = async () => {
-      const data = await getMessages();
-      setMessages(data);
-    };
-
-    fetchMsgs();
-    const interval = setInterval(fetchMsgs, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!chatId) return;
+    const load = async () => {
+      const data = await getMessages(chatId);
+      setMessages(data);
+    };
+    load();
+    const interval = setInterval(load, 3000);
+    return () => clearInterval(interval);
+  }, [chatId]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(
-    () => () => {
-      callObjectRef.current?.destroy();
-      callObjectRef.current = null;
-    },
-    []
-  );
-
-  const startVideoCall = async () => {
-    toast('Start a video call?', {
-      action: {
-        label: 'Start Call',
-        onClick: async () => {
-          try {
-            const url = await createDailyRoom();
-            await sendMessage(`Started a Video Call. Click to join: ${url}`);
-            joinCall(url);
-            toast.success('Call started');
-          } catch (error) {
-            toast.error('Failed to start call');
-          }
-        },
-      },
-      cancel: {
-        label: 'Cancel',
-        onClick: () => { },
-      },
-    });
-  };
-
-  const extractUrl = (text: string) => text.match(/https?:\/\/\S+/)?.[0];
-
-  const joinCall = (url: string) => {
-    setActiveCallUrl(url);
-    setTimeout(() => {
-      if (!callFrameRef.current) return;
-
-      callObjectRef.current?.destroy();
-      callObjectRef.current = DailyIframe.createFrame(callFrameRef.current, {
-        iframeStyle: {
-          width: '100%',
-          height: '100%',
-          border: '0',
-          borderRadius: '12px',
-        },
-        showLeaveButton: true,
-      });
-
-      callObjectRef.current.join({ url });
-
-      callObjectRef.current.on('left-meeting', () => {
-        callObjectRef.current?.destroy();
-        callObjectRef.current = null;
-        setActiveCallUrl(null);
-      });
-    }, 100);
-  };
-
-  const closeCall = () => {
-    callObjectRef.current?.leave();
-    callObjectRef.current?.destroy();
-    callObjectRef.current = null;
-    setActiveCallUrl(null);
-  };
-
   const handleSend = async () => {
-    if (!inputText.trim()) return;
-
-    const tempMsg: ChatMessage = {
-      id: Date.now().toString(),
-      text: inputText,
-      sender: 'You',
-      senderId: currentUserId,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => [...prev, tempMsg]);
-    setInputText('');
-    setShowEmoji(false);
-
-    await sendMessage(tempMsg.text);
+    if (!input.trim()) return;
+    await sendMessage(chatId, input);
+    setInput('');
   };
 
-  const handleEmojiClick = (emojiData: EmojiClickData) => {
-    setInputText((prev) => prev + emojiData.emoji);
-  };
+  if (!chatId) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#efeae2] text-slate-400">
+        Select a chat
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full bg-[#f0f2f5] relative font-sans">
-      {activeCallUrl && (
-        <div className="absolute inset-0 z-50 bg-slate-900 p-4 flex flex-col">
-          <div className="flex justify-between items-center mb-2 text-white">
-            <h3 className="font-bold">Active Call</h3>
-            <button
-              onClick={closeCall}
-              className="p-2 bg-red-600 rounded-lg text-sm font-bold"
-            >
-              Close / Minimize
-            </button>
-          </div>
-          <div
-            ref={callFrameRef}
-            className="flex-1 bg-black rounded-xl overflow-hidden shadow-2xl"
-          ></div>
-        </div>
-      )}
+    <div className="flex flex-col h-full bg-[#efeae2] relative">
+      <div
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage:
+            'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
+        }}
+      ></div>
 
-      <header className="h-16 px-6 border-b border-slate-200 bg-white flex items-center justify-between shrink-0 shadow-sm z-10">
-        <div className="flex items-center gap-3">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="md:hidden p-2 -ml-3 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
-            >
-              <ChevronLeft size={24} />
-            </button>
-          )}
-          <div className="w-10 h-10 rounded-lg bg-navy flex items-center justify-center text-white font-bold shadow-sm">
-            L
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Logistics Team</h2>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              <p className="text-xs text-slate-500">Active Channel</p>
-            </div>
-          </div>
+      <div className="h-16 bg-slate-50 border-b border-slate-200 flex items-center px-4 shrink-0 z-10">
+        <div className="w-10 h-10 rounded-full bg-slate-300 mr-3"></div>
+        <div>
+          <h2 className="font-bold text-slate-800">Chat Name</h2>
+          <p className="text-xs text-slate-500">Online</p>
         </div>
-        <div className="flex gap-2 text-slate-500">
-          <button
-            onClick={startVideoCall}
-            className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors"
-            title="Start Video Call"
-          >
-            <Video size={20} />
-          </button>
-          <button className="p-2 hover:bg-slate-100 rounded-full hover:text-primary transition-colors">
-            <MoreVertical size={20} />
-          </button>
-        </div>
-      </header>
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 z-10">
         {messages.map((msg) => {
           const isMe = msg.senderId === currentUserId;
-          const callUrl = extractUrl(msg.text);
-
           return (
-            <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''} group`}>
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${isMe ? 'bg-primary' : 'bg-slate-400'
-                  }`}
+                className={`max-w-[70%] p-2 px-3 rounded-lg shadow-sm text-sm ${
+                  isMe ? 'bg-[#d9fdd3] text-slate-900' : 'bg-white text-slate-900'
+                }`}
               >
-                {msg.sender[0]}
-              </div>
-              <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[70%]`}>
-                <div className="flex items-baseline gap-2 mb-1 px-1">
-                  <span className={`text-xs font-bold ${isMe ? 'text-primary' : 'text-slate-700'}`}>
-                    {msg.sender}
-                  </span>
-                  <span className="text-[10px] text-slate-400">{msg.time}</span>
-                </div>
-
-                <div
-                  className={`relative p-3.5 text-sm shadow-sm leading-relaxed ${isMe
-                      ? 'bg-primary text-white rounded-2xl rounded-tr-none'
-                      : 'bg-white text-slate-700 rounded-2xl rounded-tl-none border border-slate-100'
-                    }`}
-                >
-                  {callUrl ? (
-                    <div className="flex flex-col gap-2">
-                      <p className="font-bold flex items-center gap-2">
-                        <Video size={16} /> Video Call Invite
-                      </p>
-                      <button
-                        onClick={() => joinCall(callUrl)}
-                        className="bg-white text-primary px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-slate-100 transition-colors"
-                      >
-                        Join Call
-                      </button>
-                    </div>
-                  ) : (
-                    msg.text
-                  )}
-                </div>
+                {msg.content}
+                <span className="text-[10px] text-slate-400 block text-right mt-1">
+                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
               </div>
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
+        <div ref={scrollRef} />
       </div>
 
-      <div className="p-4 bg-white border-t border-slate-200 z-20">
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-2 flex items-end gap-2 shadow-inner focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-          <button className="p-2.5 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-xl transition-colors">
-            <Paperclip size={20} />
-          </button>
-
-          <div className="flex-1 py-2.5">
-            <input
-              className="w-full bg-transparent border-none p-0 text-sm focus:outline-none focus:ring-0 placeholder:text-slate-400 text-slate-700"
-              placeholder="Type a message..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            />
-          </div>
-
-          <div className="relative">
-            <button
-              onClick={() => setShowEmoji(!showEmoji)}
-              className={`p-2.5 rounded-xl transition-colors ${showEmoji
-                  ? 'text-primary bg-primary/10'
-                  : 'text-slate-400 hover:text-primary hover:bg-slate-100'
-                }`}
-            >
-              <Smile size={20} />
-            </button>
-            {showEmoji && (
-              <div className="absolute bottom-12 right-0 shadow-xl rounded-xl border border-slate-200 z-50">
-                <EmojiPicker onEmojiClick={handleEmojiClick} width={300} height={400} />
-              </div>
-            )}
-          </div>
-
+      <div className="p-3 bg-slate-50 flex items-center gap-2 z-10">
+        <div className="relative">
           <button
-            onClick={handleSend}
-            disabled={!inputText.trim()}
-            className="bg-primary text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-primary/90 shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none"
+            onClick={() => setShowAttach((prev) => !prev)}
+            className="p-2 text-slate-500 hover:bg-slate-200 rounded-full"
           >
-            <Send size={18} />
+            <Plus size={24} />
           </button>
+          {showAttach && (
+            <div className="absolute bottom-12 left-0 bg-white shadow-xl rounded-xl p-2 flex flex-col gap-2 animate-in slide-in-from-bottom-2">
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">
+                <FileText size={18} className="text-purple-500" /> Document
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">
+                <ImageIcon size={18} className="text-blue-500" /> Photos
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 text-sm text-slate-700">
+                <Video size={18} className="text-pink-500" /> Videos
+              </button>
+            </div>
+          )}
         </div>
+
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          className="flex-1 bg-white border-none rounded-lg py-2 px-4 focus:ring-0"
+          placeholder="Type a message"
+        />
+
+        {input ? (
+          <button onClick={handleSend} className="p-2 text-primary">
+            <Send size={24} />
+          </button>
+        ) : (
+          <button className="p-2 text-slate-500">
+            <Mic size={24} />
+          </button>
+        )}
       </div>
     </div>
   );

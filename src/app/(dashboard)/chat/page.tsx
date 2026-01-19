@@ -1,36 +1,19 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
-import clsx from 'clsx';
-import ConversationList from "@/components/chat/conversation-list";
-import ChatThread from "@/components/chat/chat-thread";
-import ChatInfo from "@/components/chat/chat-info";
+import ConversationList from '@/components/chat/conversation-list';
+import ChatThread from '@/components/chat/chat-thread';
 
 export default function ChatPage() {
-  const [showThread, setShowThread] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<string>('');
 
   return (
-    <div className="flex h-full w-full bg-white border-t border-slate-200 overflow-hidden">
-      <div
-        className={clsx(
-          "flex flex-col shrink-0 z-10 bg-white border-r border-slate-200 transition-all",
-          showThread ? "hidden md:flex md:w-80" : "w-full md:w-80"
-        )}
-      >
-        <ConversationList onSelect={() => setShowThread(true)} />
+    <div className="flex h-full w-full overflow-hidden bg-white">
+      <div className="w-[30%] min-w-[320px] h-full border-r border-slate-200">
+        <ConversationList onSelect={setSelectedChat} />
       </div>
-
-      <div
-        className={clsx(
-          "flex-col min-w-0 z-0 bg-slate-50/30 md:flex md:flex-1",
-          showThread ? "flex flex-1 w-full" : "hidden"
-        )}
-      >
-        <ChatThread onBack={() => setShowThread(false)} />
-      </div>
-
-      <div className="w-72 border-l border-slate-200 bg-white hidden xl:flex flex-col shrink-0 z-10">
-        <ChatInfo />
+      <div className="flex-1 h-full bg-[#efeae2]">
+        <ChatThread chatId={selectedChat} />
       </div>
     </div>
   );
