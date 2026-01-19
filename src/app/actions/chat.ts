@@ -130,3 +130,18 @@ export async function createDirectChat(targetUserId: string) {
 
   return newChat.id;
 }
+
+export async function removeParticipant(conversationId: string, userIdToRemove: string) {
+  const session = await getSession();
+  if (!session || session.role !== 'ADMIN') return { error: 'Unauthorized' };
+
+  await prisma.participant.deleteMany({
+    where: {
+      conversationId,
+      userId: userIdToRemove,
+    },
+  });
+
+  revalidatePath('/chat');
+  return { success: true };
+}
