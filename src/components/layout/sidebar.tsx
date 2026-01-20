@@ -25,6 +25,7 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
   };
 
   const userRole = user?.role || 'OFFICE_STAFF';
+  const displayName = user?.fullName || user?.name || user?.username || 'User';
 
   return (
     <aside
@@ -168,14 +169,14 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
             >
               <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-auth-accent border-2 border-auth-accent overflow-hidden relative">
-                  <Image
-                    src={
-                      user?.avatar ||
-                      `https://ui-avatars.com/api/?name=${user?.fullName || 'User'}&background=C2A44D&color=fff`
-                    }
-                    alt="Profile"
-                    fill
-                    className="object-cover"
+                    <Image
+                      src={
+                        user?.avatar ||
+                      `https://ui-avatars.com/api/?name=${displayName}&background=C2A44D&color=fff`
+                      }
+                      alt="Profile"
+                      fill
+                      className="object-cover"
                   />
                 </div>
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-auth-sidebarFrom rounded-full"></div>
@@ -186,7 +187,7 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
                   isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
-                <span className="text-sm font-bold truncate">{user?.fullName || 'Loading...'}</span>
+                <span className="text-sm font-bold truncate">{displayName}</span>
                 <span className="text-[10px] text-white/60 truncate">
                   {user?.jobTitle || user?.role}
                 </span>
@@ -224,4 +225,3 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
     </aside>
   );
 }
-
