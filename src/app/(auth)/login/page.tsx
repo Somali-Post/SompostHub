@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Delete, Check, ArrowRight, User, Lock, Mail, ShieldCheck, Info } from 'lucide-react';
 import PinKeypad from '@/components/auth/pin-keypad';
+import PwaInstallButton from '@/components/pwa/pwa-install-button';
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<'staff' | 'admin'>('staff');
@@ -104,6 +105,8 @@ export default function LoginPage() {
 
         {/* 2. Main Content */}
         <div className="flex-1 flex flex-col px-6 -mt-12 relative z-20 overflow-y-auto">
+          <PwaInstallButton variant="mobile" className="mb-4" />
+
           {/* Toggle Pills (Clay Shadow) */}
           <div className="flex justify-center mb-6">
             <div className="flex bg-white p-1 rounded-xl w-64 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),0_4px_10px_rgba(0,0,0,0.05)]">
@@ -311,6 +314,8 @@ export default function LoginPage() {
               Admin Login
             </button>
           </div>
+
+          <PwaInstallButton variant="desktop" className="mb-8" />
 
           {activeTab === 'staff' && (
             <form onSubmit={(e) => handleLogin(e)} className="animate-in fade-in slide-in-from-right-4 duration-300">
