@@ -20,6 +20,7 @@ export default function ChatPage() {
             setSelectedChat(id);
             setShowInfo(false);
           }}
+          selectedChatId={selectedChat}
         />
       </div>
 

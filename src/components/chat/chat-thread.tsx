@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, FileText, Image as ImageIcon, Mic, MoreVertical, Phone, Plus, Send, Video } from 'lucide-react';
-import { getMessages, sendMessage } from '@/app/actions/chat';
+import { getGroupDetails, getMessages, sendMessage } from '@/app/actions/chat';
+import Image from 'next/image';
 
 export default function ChatThread({
   chatId,
@@ -14,6 +15,7 @@ export default function ChatThread({
   onBack: () => void;
 }) {
   const [messages, setMessages] = useState<any[]>([]);
+  const [chatDetails, setChatDetails] = useState<any>(null);
   const [input, setInput] = useState('');
   const [showAttach, setShowAttach] = useState(false);
   const [currentUserId, setCurrentUserId] = useState('');
@@ -29,9 +31,14 @@ export default function ChatThread({
   useEffect(() => {
     if (!chatId) return;
     const load = async () => {
-      const data = await getMessages(chatId);
+      const [data, details] = await Promise.all([
+        getMessages(chatId),
+        getGroupDetails(chatId),
+      ]);
       setMessages(data);
+      setChatDetails(details);
     };
+    setChatDetails(null);
     load();
     const interval = setInterval(load, 3000);
     return () => clearInterval(interval);
@@ -55,6 +62,14 @@ export default function ChatThread({
     );
   }
 
+  const directParticipant = chatDetails?.participants?.find(
+    (participant: any) => participant.userId !== currentUserId
+  );
+  const chatName = chatDetails?.name || directParticipant?.user?.fullName || 'Chat';
+  const avatarUrl =
+    chatDetails?.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(chatName)}&background=random`;
+
   return (
     <div className="flex flex-col h-full bg-[#efeae2] relative">
       <div
@@ -72,12 +87,17 @@ export default function ChatThread({
         </button>
         <div className="flex-1 flex items-center overflow-hidden cursor-pointer" onClick={onToggleInfo}>
           <div className="w-9 h-9 rounded-full bg-slate-200 mr-2 overflow-hidden relative border border-white/20">
-            {/* Avatar Placeholder */}
-            <div className="absolute inset-0 bg-slate-300 animate-pulse"></div>
+            {chatDetails ? (
+              <Image src={avatarUrl} alt="" fill className="object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-slate-300 animate-pulse"></div>
+            )}
           </div>
           <div>
-            <h2 className="font-bold text-base leading-tight truncate">Chat Name</h2>
-            <p className="text-[11px] opacity-80 leading-tight">Online</p>
+            <h2 className="font-bold text-base leading-tight truncate">
+              {chatDetails ? chatName : 'Loading...'}
+            </h2>
+            <p className="text-[11px] opacity-80 leading-tight">Tap for info</p>
           </div>
         </div>
         <div className="flex gap-1">
@@ -92,10 +112,12 @@ export default function ChatThread({
         className="hidden md:flex h-16 bg-slate-50 border-b border-slate-200 items-center px-4 shrink-0 z-10 cursor-pointer hover:bg-slate-100 transition-colors"
         onClick={onToggleInfo}
       >
-        <div className="w-10 h-10 rounded-full bg-slate-300 mr-3"></div>
+        <div className="w-10 h-10 rounded-full bg-slate-300 mr-3 overflow-hidden relative">
+          {chatDetails && <Image src={avatarUrl} alt="" fill className="object-cover" />}
+        </div>
         <div>
-          <h2 className="font-bold text-slate-800">Chat Name</h2>
-          <p className="text-xs text-slate-500">Online</p>
+          <h2 className="font-bold text-slate-800">{chatDetails ? chatName : 'Loading...'}</h2>
+          <p className="text-xs text-slate-500">Click for info</p>
         </div>
       </div>
 
