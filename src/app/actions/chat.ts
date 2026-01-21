@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { MessageType } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
@@ -60,12 +61,16 @@ export async function sendMessage(
   fileUrl?: string
 ) {
   const session = await getSession();
-  if (!session) return;
+  if (!session) throw new Error('Unauthorized');
+
+  const normalizedType = type.toUpperCase();
+  const messageType =
+    normalizedType in MessageType ? (MessageType[normalizedType as keyof typeof MessageType] as MessageType) : MessageType.TEXT;
 
   await prisma.message.create({
     data: {
       content,
-      type: type as any,
+      type: messageType,
       fileUrl,
       conversationId,
       senderId: session.id as string,

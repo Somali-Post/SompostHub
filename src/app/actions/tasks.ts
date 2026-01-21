@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { TaskPriority, TaskStatus } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
@@ -19,7 +20,12 @@ export async function createTask(formData: FormData) {
   if (!session) throw new Error('Unauthorized');
 
   const title = formData.get('title') as string;
-  const priority = (formData.get('priority') as string) || 'MEDIUM';
+  const priorityInput = (formData.get('priority') as string) || 'MEDIUM';
+  const priorityKey = priorityInput.toUpperCase();
+  const priority =
+    priorityKey in TaskPriority
+      ? (TaskPriority[priorityKey as keyof typeof TaskPriority] as TaskPriority)
+      : TaskPriority.MEDIUM;
 
   if (!title) return;
 
@@ -27,7 +33,7 @@ export async function createTask(formData: FormData) {
     data: {
       title,
       priority,
-      status: 'PENDING',
+      status: TaskStatus.PENDING,
       dueDate: new Date(),
     },
   });
