@@ -20,42 +20,55 @@ const isStandaloneMode = () => {
 type PwaInstallButtonProps = {
   variant?: 'mobile' | 'desktop';
   className?: string;
+  showWhenUnavailable?: boolean;
 };
 
 export default function PwaInstallButton({
   variant = 'desktop',
   className = '',
+  showWhenUnavailable = true,
 }: PwaInstallButtonProps) {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    const handleBeforeInstall = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
-      if (!isStandaloneMode()) {
+    const standalone = isStandaloneMode();
+    setIsStandalone(standalone);
+    const existingPrompt = (
+      window as Window & { __pwaInstallPrompt?: BeforeInstallPromptEvent }
+    ).__pwaInstallPrompt;
+
+    if (existingPrompt && !standalone) {
+      setDeferredPrompt(existingPrompt);
+      setIsVisible(true);
+    }
+
+    const handlePromptAvailable = () => {
+      const promptEvent = (
+        window as Window & { __pwaInstallPrompt?: BeforeInstallPromptEvent }
+      ).__pwaInstallPrompt;
+      if (promptEvent && !isStandaloneMode()) {
+        setDeferredPrompt(promptEvent);
         setIsVisible(true);
+        setIsDismissed(false);
       }
     };
 
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
       setIsVisible(false);
+      setIsStandalone(true);
     };
 
-    window.addEventListener(
-      'beforeinstallprompt',
-      handleBeforeInstall as EventListener
-    );
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener('pwa:prompt-available', handlePromptAvailable);
+    window.addEventListener('pwa:app-installed', handleAppInstalled);
 
     return () => {
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleBeforeInstall as EventListener
-      );
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('pwa:prompt-available', handlePromptAvailable);
+      window.removeEventListener('pwa:app-installed', handleAppInstalled);
     };
   }, []);
 
@@ -69,7 +82,10 @@ export default function PwaInstallButton({
     setDeferredPrompt(null);
   };
 
-  if (!isVisible || !deferredPrompt) return null;
+  const canInstall = Boolean(deferredPrompt);
+  const shouldRender =
+    !isStandalone && !isDismissed && (isVisible || showWhenUnavailable);
+  if (!shouldRender) return null;
 
   const isMobile = variant === 'mobile';
   const containerClass = isMobile
@@ -79,6 +95,7 @@ export default function PwaInstallButton({
   const buttonClass = isMobile
     ? 'rounded-full bg-[#0D9488] px-4 py-2 text-xs font-bold text-white shadow-[0_6px_12px_rgba(13,148,136,0.35)]'
     : 'rounded-lg bg-[#1a3a44] px-4 py-2 text-xs font-bold text-white shadow-sm';
+  const disabledClass = 'cursor-not-allowed bg-slate-200 text-slate-500 shadow-none';
 
   return (
     <div className={`${containerClass} ${className}`}>
@@ -97,14 +114,28 @@ export default function PwaInstallButton({
           <p className="text-xs text-slate-500">
             Faster access and a full-screen experience.
           </p>
+          {!canInstall && (
+            <p className="mt-1 text-[11px] text-slate-400">
+              If install is unavailable, open the Chrome menu and tap
+              {isMobile ? ' Install app.' : ' Install Somali Post Staff Hub.'}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={handleInstall} className={buttonClass}>
+          <button
+            type="button"
+            onClick={handleInstall}
+            disabled={!canInstall}
+            className={`${buttonClass} ${!canInstall ? disabledClass : ''}`}
+          >
             Install
           </button>
           <button
             type="button"
-            onClick={() => setIsVisible(false)}
+            onClick={() => {
+              setIsVisible(false);
+              setIsDismissed(true);
+            }}
             className="text-xs font-semibold text-slate-400 hover:text-slate-600"
           >
             Not now
