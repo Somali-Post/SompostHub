@@ -60,12 +60,12 @@ export async function sendMessage(
   fileUrl?: string
 ) {
   const session = await getSession();
-  if (!session) throw new Error('Unauthorized');
+  if (!session) return;
 
   await prisma.message.create({
     data: {
       content,
-      type,
+      type: type as any,
       fileUrl,
       conversationId,
       senderId: session.id as string,
