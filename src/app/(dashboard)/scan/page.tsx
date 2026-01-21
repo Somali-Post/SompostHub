@@ -614,9 +614,11 @@ export default function ScanPage() {
       </div>
 
       <div className="flex flex-col md:flex-row flex-1 gap-4 md:gap-6 overflow-hidden">
-        <div className="flex-1 flex flex-col gap-4 md:gap-6 overflow-hidden">
+        {/* LEFT: Active Scanning Zone */}
+        <div className="flex-1 flex flex-col gap-6">
+          {/* Input */}
           <div
-            className={`p-4 md:p-6 rounded-2xl border-4 shadow-sm transition-all ${
+            className={`p-6 rounded-2xl border-4 shadow-sm transition-all ${
               currentBag ? 'bg-white border-auth-button' : 'bg-slate-200 border-slate-300'
             }`}
           >
@@ -625,56 +627,34 @@ export default function ScanPage() {
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value.toUpperCase())}
-                className="flex-1 text-2xl md:text-3xl font-mono font-bold bg-transparent border-none focus:ring-0 placeholder:text-slate-400 min-w-0"
+                className="flex-1 text-2xl md:text-3xl font-mono font-bold bg-transparent border-none focus:ring-0 placeholder:text-slate-400 uppercase"
                 placeholder={currentBag ? 'SCAN ITEM (S10)' : 'SCAN BAG (S9)'}
                 autoFocus
               />
-              <button type="submit" className="bg-slate-900 text-white p-3 md:p-4 rounded-xl shrink-0">
+              <button type="submit" className="bg-slate-900 text-white p-4 rounded-xl">
                 <ArrowRight />
               </button>
             </form>
           </div>
-          {lastScan && (
-            <p className="text-xs text-slate-500 px-1" aria-live="polite">
-              Last scan: {lastScan}
-            </p>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isOcrProcessing}
-              className="w-full md:w-auto px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold uppercase tracking-wide hover:bg-slate-50 disabled:opacity-60"
-            >
-              {isOcrProcessing ? 'Processing OCR...' : 'Upload Image (OCR)'}
-            </button>
-            {isOcrProcessing && (
-              <span className="text-xs text-slate-400">This can take a few seconds.</span>
-            )}
-          </div>
 
+          {/* Active Bag Card */}
           {currentBag ? (
-            <div className="bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden shadow-sm animate-in slide-in-from-bottom-2">
-              <div className="p-4 bg-auth-button text-white flex justify-between items-center gap-3">
+            <div className="flex-1 bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden shadow-sm animate-in slide-in-from-bottom-2">
+              <div className="p-4 bg-auth-button text-white flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold opacity-80 uppercase">Active Receptacle</p>
                   <p className="font-mono font-bold text-lg truncate max-w-[200px] md:max-w-none">
                     {currentBag.id}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-full">
-                    {currentItems.length} Items
-                  </span>
-                  <button
-                    onClick={closeBag}
-                    className="bg-white text-auth-button px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100"
-                  >
-                    Close Bag
-                  </button>
-                </div>
+                <button
+                  onClick={closeBag}
+                  className="bg-white text-auth-button px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100"
+                >
+                  Close Bag
+                </button>
               </div>
-              <div className="max-h-60 md:max-h-[60vh] overflow-y-auto p-2 space-y-2">
+              <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 {currentItems.length > 0 ? (
                   currentItems.map((item) => (
                     <div
@@ -697,14 +677,6 @@ export default function ScanPage() {
             <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl text-slate-400">
               <Layers size={48} className="mb-4 opacity-20" />
               <p className="font-bold">Scan a Bag Label to Start</p>
-              {sessionBags.length > 0 && (
-                <button
-                  onClick={handleNextBag}
-                  className="mt-4 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold uppercase tracking-widest"
-                >
-                  Next Bag
-                </button>
-              )}
             </div>
           )}
         </div>
