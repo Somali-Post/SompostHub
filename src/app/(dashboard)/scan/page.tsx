@@ -615,7 +615,6 @@ export default function ScanPage() {
 
       <div className="flex flex-col md:flex-row flex-1 gap-4 md:gap-6 overflow-hidden">
         <div className="flex-1 flex flex-col gap-4 md:gap-6 overflow-hidden">
-          <button
           <div
             className={`p-4 md:p-6 rounded-2xl border-4 shadow-sm transition-all ${
               currentBag ? 'bg-white border-auth-button' : 'bg-slate-200 border-slate-300'
