@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function getTasks() {
   const session = await getSession();
-  if (!session) return [];
+  if (!session) throw new Error('Unauthorized');
 
   return await prisma.task.findMany({
     orderBy: { createdAt: 'desc' },
@@ -15,6 +15,9 @@ export async function getTasks() {
 }
 
 export async function createTask(formData: FormData) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
   const title = formData.get('title') as string;
   const priority = (formData.get('priority') as string) || 'MEDIUM';
 
@@ -33,6 +36,9 @@ export async function createTask(formData: FormData) {
 }
 
 export async function toggleTask(id: string, currentStatus: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
   const newStatus = currentStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
   await prisma.task.update({
     where: { id },

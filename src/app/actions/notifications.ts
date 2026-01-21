@@ -6,8 +6,8 @@ import { revalidatePath } from 'next/cache';
 
 export async function getNotifications() {
   const session = await getSession();
-  const userId = session?.id as string | undefined;
-  if (!userId) return [];
+  if (!session) throw new Error('Unauthorized');
+  const userId = session.id as string;
 
   return await prisma.notification.findMany({
     where: {
@@ -18,6 +18,9 @@ export async function getNotifications() {
 }
 
 export async function markAsRead(id: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
   await prisma.notification.update({
     where: { id },
     data: { isRead: true },
@@ -27,8 +30,8 @@ export async function markAsRead(id: string) {
 
 export async function clearAllNotifications() {
   const session = await getSession();
-  const userId = session?.id as string | undefined;
-  if (!userId) return;
+  if (!session) throw new Error('Unauthorized');
+  const userId = session.id as string;
 
   await prisma.notification.deleteMany({
     where: { userId },

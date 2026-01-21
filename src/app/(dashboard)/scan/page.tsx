@@ -455,7 +455,7 @@ export default function ScanPage() {
       const res = await fetch('/api/scan/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bags: sessionBags }),
+        body: JSON.stringify({ bags: sessionBags, source: 'structured' }),
       });
 
       if (res.ok) {

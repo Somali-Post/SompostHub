@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function getConversations() {
   const session = await getSession();
-  if (!session) return [];
+  if (!session) throw new Error('Unauthorized');
 
   const convos = await prisma.conversation.findMany({
     where: {
@@ -43,6 +43,9 @@ export async function getConversations() {
 }
 
 export async function getMessages(conversationId: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
   return await prisma.message.findMany({
     where: { conversationId },
     orderBy: { createdAt: 'asc' },
@@ -57,7 +60,7 @@ export async function sendMessage(
   fileUrl?: string
 ) {
   const session = await getSession();
-  if (!session) return;
+  if (!session) throw new Error('Unauthorized');
 
   await prisma.message.create({
     data: {
@@ -79,7 +82,8 @@ export async function sendMessage(
 
 export async function createGroup(name: string, memberIds: string[]) {
   const session = await getSession();
-  if (!session || session.role !== 'ADMIN') return { error: 'Unauthorized' };
+  if (!session) throw new Error('Unauthorized');
+  if (session.role !== 'ADMIN') throw new Error('Unauthorized');
 
   const allMembers = [...memberIds, session.id as string];
 
@@ -98,6 +102,9 @@ export async function createGroup(name: string, memberIds: string[]) {
 }
 
 export async function getAllStaff() {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
   return await prisma.user.findMany({
     select: { id: true, fullName: true, jobTitle: true, avatar: true, role: true },
   });
@@ -105,7 +112,7 @@ export async function getAllStaff() {
 
 export async function createDirectChat(targetUserId: string) {
   const session = await getSession();
-  if (!session) return;
+  if (!session) throw new Error('Unauthorized');
 
   const existing = await prisma.conversation.findFirst({
     where: {
@@ -133,7 +140,7 @@ export async function createDirectChat(targetUserId: string) {
 
 export async function getGroupDetails(conversationId: string) {
   const session = await getSession();
-  if (!session) return null;
+  if (!session) throw new Error('Unauthorized');
 
   const convo = await prisma.conversation.findUnique({
     where: { id: conversationId },
@@ -152,7 +159,8 @@ export async function getGroupDetails(conversationId: string) {
 
 export async function removeParticipant(conversationId: string, userIdToRemove: string) {
   const session = await getSession();
-  if (!session || session.role !== 'ADMIN') return { error: 'Unauthorized' };
+  if (!session) throw new Error('Unauthorized');
+  if (session.role !== 'ADMIN') throw new Error('Unauthorized');
 
   await prisma.participant.deleteMany({
     where: {

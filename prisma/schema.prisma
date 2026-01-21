@@ -9,6 +9,65 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  ADMIN
+  OFFICE_STAFF
+  DELIVERY
+}
+
+enum ScanStatus {
+  PROCESSING
+  DELIVERED
+  RETURNED
+}
+
+enum ScanType {
+  EMS
+  PARCEL
+  REGISTERED
+  UNKNOWN
+  BAG
+  ITEM
+}
+
+enum ReceptacleStatus {
+  OPEN
+  CLOSED
+  IMPORTED_TO_IPS
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  INFO
+  ALERT
+  TASK
+  SECURITY
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  AUDIO
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
 model User {
   id       String @id @default(cuid())
   username String @unique
@@ -16,7 +75,7 @@ model User {
   password String?
 
   fullName  String
-  role      String  @default("OFFICE_STAFF")
+  role      UserRole  @default(OFFICE_STAFF)
   jobTitle  String?
   email     String? @unique
   phone     String?
@@ -33,22 +92,31 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([createdAt])
 }
 
 model Scan {
   id        String   @id @default(cuid())
-  barcode   String
+  barcode   String   @unique
   weight    Float
-  type      String
+  type      ScanType
   origin    String
-  status    String   @default("PROCESSING") // PROCESSING, DELIVERED, RETURNED
+  status    ScanStatus   @default(PROCESSING)
   deliveredTo String?
+  imageUrl  String?
   scannerId String
   scanner   User     @relation(fields: [scannerId], references: [id])
   receptacleId String?
   receptacle   Receptacle? @relation(fields: [receptacleId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([scannerId])
+  @@index([receptacleId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Receptacle {
@@ -56,7 +124,7 @@ model Receptacle {
   originImpc  String
   destImpc    String
   weight      Float
-  status      String   @default("OPEN") // OPEN, CLOSED, IMPORTED_TO_IPS
+  status      ReceptacleStatus   @default(OPEN)
 
   scannedById String
   scannedBy   User     @relation(fields: [scannedById], references: [id])
@@ -64,6 +132,10 @@ model Receptacle {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([scannedById])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model AuditLog {
@@ -74,14 +146,17 @@ model AuditLog {
   actorName String
   actorRole String
   createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
 }
 
 model Task {
   id          String   @id @default(cuid())
   title       String
   description String?
-  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
-  priority    String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority   @default(MEDIUM)
   dueDate     DateTime?
 
   assignedToId String?
@@ -89,30 +164,39 @@ model Task {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
 }
 
 model Notification {
   id        String   @id @default(cuid())
   title     String
   message   String
-  type      String   @default("INFO") // INFO, ALERT, TASK, SECURITY
+  type      NotificationType   @default(INFO)
   isRead    Boolean  @default(false)
 
   userId    String?  // If null, it's a system-wide alert
   user      User?    @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Conversation {
   id           String       @id @default(cuid())
-  type         String       @default("DIRECT") // DIRECT or GROUP
+  type         ConversationType       @default(DIRECT)
   name         String?
   avatar       String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   participants Participant[]
   messages     Message[]
+
+  @@index([updatedAt])
 }
 
 model Participant {
@@ -124,16 +208,21 @@ model Participant {
   joinedAt       DateTime     @default(now())
 
   @@unique([userId, conversationId])
+  @@index([conversationId])
 }
 
 model Message {
   id             String       @id @default(cuid())
   content        String?
-  type           String       @default("TEXT") // TEXT, AUDIO, IMAGE, VIDEO, DOCUMENT
+  type           MessageType       @default(TEXT)
   fileUrl        String?
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id])
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
 }
