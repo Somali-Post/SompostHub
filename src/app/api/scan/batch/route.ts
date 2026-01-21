@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { ScanType } from "@prisma/client";
+
+const toScanType = (value: string | null | undefined, fallback: ScanType) => {
+  const normalized = (value || "").toUpperCase();
+  return normalized in ScanType
+    ? (ScanType[normalized as keyof typeof ScanType] as ScanType)
+    : fallback;
+};
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +28,7 @@ export async function POST(req: Request) {
     const scanData = items.map((item: any) => ({
       barcode: item.barcode,
       weight: parseFloat(item.weight),
-      type: item.type,
+      type: toScanType(item.type, ScanType.UNKNOWN),
       origin: item.origin,
       scannerId,
     }));

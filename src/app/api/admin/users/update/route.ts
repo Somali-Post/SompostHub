@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { UserRole } from '@prisma/client';
 
 export async function PUT(req: Request) {
   try {
@@ -16,15 +17,21 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
+    const roleKey = role ? String(role).toUpperCase() : '';
+    const roleValue =
+      roleKey && roleKey in UserRole
+        ? (UserRole[roleKey as keyof typeof UserRole] as UserRole)
+        : undefined;
+
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         fullName,
         username,
-        role,
+        role: roleValue,
         phone,
         jobTitle,
-        email: role === 'ADMIN' ? `${username}@somalipost.gov.so` : undefined,
+        email: roleValue === UserRole.ADMIN ? `${username}@somalipost.gov.so` : undefined,
       },
     });
 

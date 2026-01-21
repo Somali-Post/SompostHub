@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { MessageType } from '@prisma/client';
+import { ConversationType, MessageType } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
@@ -24,7 +24,7 @@ export async function getConversations() {
   });
 
   return convos.map((convo) => {
-    const isGroup = convo.type === 'GROUP';
+    const isGroup = convo.type === ConversationType.GROUP;
     const otherParticipant = convo.participants.find(
       (participant) => participant.userId !== session.id
     )?.user;
@@ -94,7 +94,7 @@ export async function createGroup(name: string, memberIds: string[]) {
 
   await prisma.conversation.create({
     data: {
-      type: 'GROUP',
+      type: ConversationType.GROUP,
       name,
       participants: {
         create: allMembers.map((id) => ({ userId: id })),
@@ -121,7 +121,7 @@ export async function createDirectChat(targetUserId: string) {
 
   const existing = await prisma.conversation.findFirst({
     where: {
-      type: 'DIRECT',
+      type: ConversationType.DIRECT,
       AND: [
         { participants: { some: { userId: session.id as string } } },
         { participants: { some: { userId: targetUserId } } },
@@ -133,7 +133,7 @@ export async function createDirectChat(targetUserId: string) {
 
   const newChat = await prisma.conversation.create({
     data: {
-      type: 'DIRECT',
+      type: ConversationType.DIRECT,
       participants: {
         create: [{ userId: session.id as string }, { userId: targetUserId }],
       },

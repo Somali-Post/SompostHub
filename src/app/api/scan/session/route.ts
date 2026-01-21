@@ -4,15 +4,18 @@ import { getSession } from '@/lib/auth';
 import { parseS9 } from '@/lib/s9';
 import { parseS10 } from '@/lib/upu';
 import { randomUUID } from 'crypto';
+import { ReceptacleStatus, ScanType } from '@prisma/client';
 
 type CaptureInput = {
   type?: string;
   img?: string;
 };
 
-const normalizeCaptureType = (value: string | null | undefined) => {
-  const normalized = (value || 'ITEM').toUpperCase();
-  return normalized === 'BAG' ? 'BAG' : 'ITEM';
+const toScanType = (value: string | null | undefined, fallback: ScanType) => {
+  const normalized = (value || '').toUpperCase();
+  return normalized in ScanType
+    ? (ScanType[normalized as keyof typeof ScanType] as ScanType)
+    : fallback;
 };
 
 const normalizeImageUrl = (value: string) => {
@@ -65,13 +68,13 @@ export async function POST(req: Request) {
             directTypes[index] || indexedTypes[index] || indexedTypes[Number(index)] || 'ITEM';
           if (typeof entry === 'string') {
             return {
-              type: normalizeCaptureType(captureType),
+              type: toScanType(captureType, ScanType.ITEM),
               imageUrl: normalizeImageUrl(entry),
             };
           }
 
           return {
-            type: normalizeCaptureType(captureType),
+            type: toScanType(captureType, ScanType.ITEM),
             imageUrl: await fileToDataUrl(entry),
           };
         })
@@ -113,7 +116,7 @@ export async function POST(req: Request) {
         return {
           barcode: `IMG-${randomUUID()}`,
           weight: 0,
-          type: normalizeCaptureType(capture.type),
+          type: toScanType(capture.type, ScanType.ITEM),
           origin: 'UNKNOWN',
           scannerId,
           imageUrl: normalizeImageUrl(capture.img),
@@ -153,7 +156,7 @@ export async function POST(req: Request) {
               originImpc: s9.origin,
               destImpc: s9.destination,
               weight: s9.weightKg,
-              status: 'CLOSED',
+              status: ReceptacleStatus.CLOSED,
               scannedById: scannerId,
             },
           });
@@ -164,7 +167,7 @@ export async function POST(req: Request) {
             return {
               barcode,
               weight: 0,
-              type: parsed.type,
+              type: toScanType(parsed.type, ScanType.UNKNOWN),
               origin: parsed.countryName || 'UNKNOWN',
               scannerId,
               receptacleId: s9.id,

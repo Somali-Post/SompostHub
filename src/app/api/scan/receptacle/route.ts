@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { parseS9 } from '@/lib/s9';
 import { parseS10 } from '@/lib/upu';
+import { ReceptacleStatus, ScanType } from '@prisma/client';
+
+const toScanType = (value: string | null | undefined, fallback: ScanType) => {
+  const normalized = (value || '').toUpperCase();
+  return normalized in ScanType
+    ? (ScanType[normalized as keyof typeof ScanType] as ScanType)
+    : fallback;
+};
 
 export async function POST(req: Request) {
   try {
@@ -34,7 +42,7 @@ export async function POST(req: Request) {
       return {
         barcode,
         weight: 0,
-        type: parsed.type,
+        type: toScanType(parsed.type, ScanType.UNKNOWN),
         origin: parsed.countryName || 'UNKNOWN',
         scannerId,
         receptacleId: s9.id,
@@ -48,7 +56,7 @@ export async function POST(req: Request) {
           originImpc: s9.origin,
           destImpc: s9.destination,
           weight: s9.weightKg,
-          status: 'CLOSED',
+          status: ReceptacleStatus.CLOSED,
           scannedById: scannerId,
         },
       });
