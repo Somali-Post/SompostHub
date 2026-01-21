@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Box, CheckCircle, Camera, Layers, X } from 'lucide-react';
+import { ArrowRight, Box, CheckCircle, Camera, Image as ImageIcon, Layers, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseS9, type S9Data } from '@/lib/s9';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -25,11 +25,16 @@ export default function ScanPage() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [lastScan, setLastScan] = useState('');
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [mobileState, setMobileState] = useState<'IDLE' | 'BAG' | 'ITEM' | 'REVIEW'>('IDLE');
+  const [mobileQueue, setMobileQueue] = useState<{ type: 'bag' | 'item'; img: string }[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const totalItems = sessionBags.reduce((sum, bag) => sum + bag.items.length, 0) + currentItems.length;
   const totalBags = sessionBags.length + (currentBag ? 1 : 0);
@@ -290,6 +295,119 @@ export default function ScanPage() {
     }
   };
 
+  const stopMobileCamera = () => {
+    if (streamRef.current) {
+      for (const track of streamRef.current.getTracks()) {
+        track.stop();
+      }
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const startMobileCamera = async (nextState: 'BAG' | 'ITEM' = 'BAG') => {
+    try {
+      stopMobileCamera();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setMobileState(nextState);
+    } catch (e) {
+      toast.error('Camera access denied');
+      setMobileState('IDLE');
+    }
+  };
+
+  const beginMobileSession = () => {
+    setMobileQueue([]);
+    void startMobileCamera('BAG');
+  };
+
+  const capturePhoto = (type: 'bag' | 'item') => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    if (!context) return;
+    const { videoWidth, videoHeight } = videoRef.current;
+    if (!videoWidth || !videoHeight) return;
+
+    canvasRef.current.width = videoWidth;
+    canvasRef.current.height = videoHeight;
+    context.drawImage(videoRef.current, 0, 0);
+
+    const imgUrl = canvasRef.current.toDataURL('image/jpeg');
+    setMobileQueue((prev) => [...prev, { type, img: imgUrl }]);
+    toast.success(type === 'bag' ? 'Bag Captured' : 'Item Captured');
+
+    if (type === 'bag') {
+      setMobileState('ITEM');
+    }
+  };
+
+  const submitMobileQueue = async () => {
+    if (mobileQueue.length === 0) {
+      toast.warning('No photos to upload');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      const uploads = await Promise.all(
+        mobileQueue.map(async (item, index) => {
+          const blob = await fetch(item.img).then((res) => res.blob());
+          return { blob, index, type: item.type };
+        })
+      );
+
+      for (const upload of uploads) {
+        formData.append('images', upload.blob, `capture-${upload.index + 1}.jpg`);
+        formData.append(`types[${upload.index}]`, upload.type);
+      }
+
+      const res = await fetch('/api/scan/session', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        toast.error('Failed to upload session');
+        return;
+      }
+
+      toast.success(`Uploaded ${mobileQueue.length} photo${mobileQueue.length === 1 ? '' : 's'}`);
+      setMobileQueue([]);
+      stopMobileCamera();
+      setMobileState('IDLE');
+    } catch (e) {
+      toast.error('Upload failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if ((mobileState === 'BAG' || mobileState === 'ITEM') && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      return;
+    }
+
+    if (mobileState === 'IDLE' || mobileState === 'REVIEW') {
+      stopMobileCamera();
+    }
+  }, [mobileState]);
+
+  useEffect(() => {
+    return () => {
+      stopMobileCamera();
+    };
+  }, []);
+
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input) return;
@@ -498,15 +616,6 @@ export default function ScanPage() {
       <div className="flex flex-col md:flex-row flex-1 gap-4 md:gap-6 overflow-hidden">
         <div className="flex-1 flex flex-col gap-4 md:gap-6 overflow-hidden">
           <button
-            className="md:hidden h-36 bg-slate-900 text-white rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
-            onClick={() => setIsScanning(true)}
-          >
-            <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-              <Camera size={28} />
-            </div>
-            <span className="font-bold text-sm uppercase tracking-widest text-white/80">Tap to Scan</span>
-          </button>
-
           <div
             className={`p-4 md:p-6 rounded-2xl border-4 shadow-sm transition-all ${
               currentBag ? 'bg-white border-auth-button' : 'bg-slate-200 border-slate-300'
@@ -667,69 +776,147 @@ export default function ScanPage() {
         </div>
       </div>
 
-      <div className="md:hidden bg-white rounded-xl border border-slate-200 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-slate-100 bg-slate-50 font-bold text-slate-700">
-          Session Manifest
-        </div>
-        <div className="max-h-40 overflow-y-auto p-2 space-y-2">
-          {currentBag && (
-            <div className="p-3 border border-auth-button/20 rounded-lg bg-auth-button/5">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-xs text-auth-button">ACTIVE BAG</span>
-                <span className="text-[10px] bg-white px-2 py-0.5 rounded-full font-bold">
-                  {currentItems.length} Items
-                </span>
-              </div>
-              <p className="font-mono text-xs text-slate-800 truncate">{currentBag.id}</p>
+      <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col">
+        <canvas ref={canvasRef} className="hidden" />
+
+        {mobileState === 'IDLE' && (
+          <div className="flex-1 flex flex-col items-center justify-center bg-slate-900 text-white p-6">
+            <div className="w-24 h-24 bg-auth-button rounded-full flex items-center justify-center mb-6 shadow-lg shadow-auth-button/30 animate-pulse">
+              <Camera size={48} />
             </div>
-          )}
-          {sessionBags.map((bag, i) => (
-            <div
-              key={bag.id}
-              className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors"
-            >
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-xs text-slate-500">BAG {i + 1}</span>
-                <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full font-bold">
-                  {bag.items.length} Items
-                </span>
-              </div>
-              <p className="font-mono text-xs text-slate-800 truncate">{bag.id}</p>
-            </div>
-          ))}
-          {sessionBags.length === 0 && !currentBag && (
-            <p className="text-center text-xs text-slate-400 py-4">No bags closed yet.</p>
-          )}
-        </div>
-        <div className="p-4 border-t border-slate-100">
-          {currentBag ? (
+            <h1 className="text-2xl font-bold mb-2">Scan Station</h1>
+            <p className="text-slate-400 text-center mb-8">
+              Capture receptacles and items for verification.
+            </p>
             <button
-              onClick={closeBag}
-              className="w-full py-3 mb-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50"
+              onClick={beginMobileSession}
+              className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg"
             >
-              Close Bag
+              Start New Session
             </button>
-          ) : (
-            sessionBags.length > 0 && (
+          </div>
+        )}
+
+        {(mobileState === 'BAG' || mobileState === 'ITEM') && (
+          <div className="relative flex-1 bg-black">
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+
+            <div className="absolute top-0 left-0 w-full p-4 bg-gradient-to-b from-black/80 to-transparent pt-12">
+              <div className="flex justify-between items-center text-white">
+                <span className="font-bold text-lg drop-shadow-md">
+                  {mobileState === 'BAG'
+                    ? 'Scan Bag Label'
+                    : `Scanning Items (${mobileQueue.filter((item) => item.type === 'item').length})`}
+                </span>
+                <button
+                  onClick={() => {
+                    stopMobileCamera();
+                    setMobileState('REVIEW');
+                  }}
+                  className="px-3 py-1 bg-white/20 backdrop-blur rounded-lg text-xs font-bold"
+                >
+                  Review ({mobileQueue.length})
+                </button>
+              </div>
+            </div>
+
+            <div className="absolute bottom-0 left-0 w-full p-8 pb-12 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center gap-6">
+              <p className="text-white/80 text-sm font-medium bg-black/40 px-4 py-1 rounded-full backdrop-blur-md">
+                {mobileState === 'BAG' ? 'Capture the S9 receptacle ID' : 'Capture item S10 ID'}
+              </p>
+
+              <div className="flex items-center gap-8 w-full justify-center">
+                <div className="w-12 h-12 bg-white/10 rounded-lg border border-white/20 overflow-hidden relative flex items-center justify-center text-white/60">
+                  {mobileQueue.length > 0 ? (
+                    <img
+                      src={mobileQueue[mobileQueue.length - 1].img}
+                      className="w-full h-full object-cover"
+                      alt="Latest capture"
+                    />
+                  ) : (
+                    <ImageIcon size={18} />
+                  )}
+                  {mobileQueue.length > 0 && (
+                    <span className="absolute bottom-0 right-0 bg-auth-button text-[8px] px-1 text-white">
+                      {mobileQueue.length}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => capturePhoto(mobileState === 'BAG' ? 'bag' : 'item')}
+                  className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center bg-white/20 active:bg-white/50 transition-all"
+                  aria-label="Capture"
+                >
+                  <div className="w-16 h-16 bg-white rounded-full"></div>
+                </button>
+
+                {mobileState === 'ITEM' ? (
+                  <button
+                    onClick={() => setMobileState('BAG')}
+                    className="w-12 h-12 bg-auth-button rounded-full flex items-center justify-center text-white shadow-lg"
+                    aria-label="Next bag"
+                  >
+                    <Layers size={20} />
+                  </button>
+                ) : (
+                  <div className="w-12 h-12"></div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {mobileState === 'REVIEW' && (
+          <div className="flex-1 bg-slate-900 flex flex-col">
+            <div className="p-4 border-b border-white/10 flex justify-between items-center pt-12">
+              <h2 className="text-white font-bold text-lg">Session Review</h2>
               <button
-                onClick={handleNextBag}
-                className="w-full py-3 mb-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                onClick={() => {
+                  const hasBag = mobileQueue.some((item) => item.type === 'bag');
+                  void startMobileCamera(hasBag ? 'ITEM' : 'BAG');
+                }}
+                className="text-slate-400"
+                aria-label="Close review"
               >
-                Next Bag
+                <X />
               </button>
-            )
-          )}
-          <button
-            onClick={openReview}
-            disabled={sessionBags.length === 0 || isSubmitting || !!currentBag}
-            className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Review & Submit
-          </button>
-          {currentBag && (
-            <p className="text-xs text-slate-400 mt-2">Close the active bag to review.</p>
-          )}
-        </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-2">
+              {mobileQueue.map((item, i) => (
+                <div
+                  key={`${item.type}-${i}`}
+                  className="aspect-square bg-slate-800 rounded-lg overflow-hidden relative border border-white/10"
+                >
+                  <img src={item.img} className="w-full h-full object-cover" alt={`${item.type} capture`} />
+                  <span
+                    className={`absolute bottom-1 right-1 text-[8px] px-1 rounded ${
+                      item.type === 'bag' ? 'bg-blue-500 text-white' : 'bg-slate-200 text-black'
+                    }`}
+                  >
+                    {item.type.toUpperCase()}
+                  </span>
+                </div>
+              ))}
+              {mobileQueue.length === 0 && (
+                <div className="col-span-3 text-center text-slate-400 text-sm py-10">
+                  No captures yet.
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-white/10 bg-black">
+              <button
+                onClick={submitMobileQueue}
+                disabled={mobileQueue.length === 0 || isSubmitting}
+                className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Upload {mobileQueue.length} Photos <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
