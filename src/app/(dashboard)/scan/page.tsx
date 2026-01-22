@@ -330,6 +330,22 @@ export default function ScanPage() {
   };
 
   const capturePhoto = (type: 'bag' | 'item') => {
+    if (mobileState === 'IDLE') {
+      toast.warning('Start a session before capturing.');
+      return;
+    }
+    if (mobileState === 'REVIEW') {
+      toast.warning('Close review to continue capturing.');
+      return;
+    }
+    if (mobileState === 'BAG' && type !== 'bag') {
+      toast.warning('Capture the receptacle label first.');
+      return;
+    }
+    if (mobileState === 'ITEM' && type !== 'item') {
+      toast.warning('Finish this bag before capturing another receptacle.');
+      return;
+    }
     if (!videoRef.current || !canvasRef.current) return;
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
@@ -407,6 +423,14 @@ export default function ScanPage() {
       stopMobileCamera();
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('hide-mobile-nav', mobileState !== 'IDLE');
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [mobileState]);
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -791,32 +815,34 @@ export default function ScanPage() {
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full p-8 pb-12 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center gap-6">
-              <p className="text-white/80 text-sm font-medium bg-black/40 px-4 py-1 rounded-full backdrop-blur-md">
-                {mobileState === 'BAG' ? 'Capture the S9 receptacle ID' : 'Capture item S10 ID'}
+            <div className="absolute bottom-0 left-0 w-full p-8 pb-24 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center gap-6">
+              <p className="text-white/80 text-sm font-medium bg-black/40 px-4 py-1 rounded-full backdrop-blur-md border border-white/10">
+                {mobileState === 'BAG'
+                  ? 'Capture Receptacle Label (S9)'
+                  : `Scanning Items for Bag #${mobileQueue.filter((item) => item.type === 'bag').length}`}
               </p>
 
               <div className="flex items-center gap-8 w-full justify-center">
-                <div className="w-12 h-12 bg-white/10 rounded-lg border border-white/20 overflow-hidden relative flex items-center justify-center text-white/60">
-                  {mobileQueue.length > 0 ? (
+                <button
+                  onClick={() => setMobileState('REVIEW')}
+                  className="w-12 h-12 bg-white/10 rounded-lg border border-white/20 overflow-hidden relative active:scale-95 transition-transform"
+                  aria-label="Open review"
+                >
+                  {mobileQueue.length > 0 && (
                     <img
                       src={mobileQueue[mobileQueue.length - 1].img}
                       className="w-full h-full object-cover"
                       alt="Latest capture"
                     />
-                  ) : (
-                    <ImageIcon size={18} />
                   )}
-                  {mobileQueue.length > 0 && (
-                    <span className="absolute bottom-0 right-0 bg-auth-button text-[8px] px-1 text-white">
-                      {mobileQueue.length}
-                    </span>
-                  )}
-                </div>
+                  <span className="absolute bottom-0 right-0 bg-auth-button text-[8px] px-1 text-white">
+                    {mobileQueue.length}
+                  </span>
+                </button>
 
                 <button
                   onClick={() => capturePhoto(mobileState === 'BAG' ? 'bag' : 'item')}
-                  className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center bg-white/20 active:bg-white/50 transition-all"
+                  className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center bg-white/20 active:bg-white/50 transition-all shadow-lg shadow-black/50"
                   aria-label="Capture"
                 >
                   <div className="w-16 h-16 bg-white rounded-full"></div>
@@ -824,8 +850,12 @@ export default function ScanPage() {
 
                 {mobileState === 'ITEM' ? (
                   <button
-                    onClick={() => setMobileState('BAG')}
-                    className="w-12 h-12 bg-auth-button rounded-full flex items-center justify-center text-white shadow-lg"
+                    onClick={() => {
+                      toast.success('Bag Closed. Ready for next.');
+                      setMobileState('BAG');
+                    }}
+                    className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                    title="Finish Bag / Next Bag"
                     aria-label="Next bag"
                   >
                     <Layers size={20} />

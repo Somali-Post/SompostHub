@@ -30,7 +30,7 @@ export default function MobileNav({ onMenuClick }: MobileNavProps) {
     const pathname = usePathname();
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 pt-2 z-50 md:hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="mobile-nav-root fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 pt-2 z-50 md:hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between">
                 {MOBILE_TABS.map((tab) => {
                     const isActive = pathname.startsWith(tab.href);
