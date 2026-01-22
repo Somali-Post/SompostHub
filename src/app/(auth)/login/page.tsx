@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Delete, Check, ArrowRight, User, Lock, Mail, ShieldCheck, Info } from 'lucide-react';
+import { Delete, User, Lock, Mail, ShieldCheck } from 'lucide-react';
 import PinKeypad from '@/components/auth/pin-keypad';
 import PwaInstallButton from '@/components/pwa/pwa-install-button';
 
@@ -57,43 +57,48 @@ export default function LoginPage() {
   return (
     <>
       {/* =========================================================================
-          MOBILE LAYOUT (Final Native App Style - White Body & Clay Shadows)
+          MOBILE LAYOUT (Polished Native App Feel - No Scroll)
          ========================================================================= */}
-      <div className="md:hidden fixed inset-0 flex flex-col bg-slate-50 font-sans overflow-hidden">
-        {/* 1. Curved Header with Wave & Gradient */}
-        <div className="relative bg-linear-to-br from-[#1a3a44] to-[#2e7585] pt-12 pb-28 px-6 shrink-0 z-10">
+      <div className="md:hidden fixed inset-0 flex flex-col bg-slate-50 font-sans overflow-hidden h-[100dvh]">
+        {/* 1. Compact Header with Integrated PWA Button */}
+        <div className="relative bg-gradient-to-br from-[#1a3a44] to-[#2e7585] pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-10 px-6 shrink-0 z-10 shadow-lg">
+          {/* PWA Install Button (Top Right, Icon Only) */}
+          <div className="absolute top-[calc(env(safe-area-inset-top)+0.5rem)] right-4 z-50">
+            <PwaInstallButton variant="icon" showWhenUnavailable={false} />
+          </div>
+
           {/* Dot Grid Overlay */}
           <div
-            className="absolute inset-0 opacity-20 pointer-events-none"
+            className="absolute inset-0 opacity-10 pointer-events-none"
             style={{
               backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
+              backgroundSize: '16px 16px',
             }}
           />
 
-          <div className="relative z-10 flex flex-col items-center gap-3">
-            {/* Transparent Logo */}
-            <div className="w-20 h-20 flex items-center justify-center mb-1">
+          <div className="relative z-10 flex flex-col items-center gap-2 mt-4">
+            {/* Logo */}
+            <div className="w-14 h-14 flex items-center justify-center bg-white/10 rounded-2xl backdrop-blur-sm shadow-inner border border-white/10">
               <Image
                 src="/logos/logo.png"
                 alt="Somali Post"
-                width={64}
-                height={64}
-                className="object-contain drop-shadow-lg"
+                width={40}
+                height={40}
+                className="object-contain"
                 priority
               />
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Staff Login</h1>
-              <p className="text-xs text-teal-100/90 font-medium tracking-wide">
-                Official Internal Portal
+              <h1 className="text-xl font-bold text-white tracking-tight">Staff Portal</h1>
+              <p className="text-[10px] text-teal-100/80 font-medium tracking-widest uppercase">
+                Authorized Access Only
               </p>
             </div>
           </div>
 
-          {/* Smooth Bezier Wave */}
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-0">
-            <svg className="relative block w-full h-15" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          {/* Shorter Wave */}
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-0 translate-y-[1px]">
+            <svg className="relative block w-full h-8" viewBox="0 0 1440 320" preserveAspectRatio="none">
               <path
                 fill="#f8fafc"
                 fillOpacity="1"
@@ -103,25 +108,23 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 2. Main Content */}
-        <div className="flex-1 flex flex-col px-6 -mt-12 relative z-20 overflow-y-auto">
-          <PwaInstallButton variant="mobile" className="mb-4" />
-
-          {/* Toggle Pills (Clay Shadow) */}
-          <div className="flex justify-center mb-6">
-            <div className="flex bg-white p-1 rounded-xl w-64 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),0_4px_10px_rgba(0,0,0,0.05)]">
+        {/* 2. Main Content (Flex Column to fill remaining height) */}
+        <div className="flex-1 flex flex-col px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] relative z-20 min-h-0">
+          {/* Toggle Pills */}
+          <div className="flex justify-center mb-4 shrink-0">
+            <div className="flex bg-slate-200/60 p-1 rounded-xl w-56 shadow-inner">
               <button
                 onClick={() => setActiveTab('staff')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'staff' ? 'bg-[#1a3a44] text-white shadow-md' : 'text-slate-400'
+                className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                  activeTab === 'staff' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-500'
                 }`}
               >
                 Staff
               </button>
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'admin' ? 'bg-[#1a3a44] text-white shadow-md' : 'text-slate-400'
+                className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                  activeTab === 'admin' ? 'bg-white text-[#1a3a44] shadow-sm' : 'text-slate-500'
                 }`}
               >
                 Admin
@@ -131,123 +134,124 @@ export default function LoginPage() {
 
           {/* STAFF VIEW */}
           {activeTab === 'staff' && (
-            <div className="flex flex-col flex-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              {/* Floating Input Card */}
-              <div className="bg-white rounded-2xl p-5 mb-4 space-y-5 shadow-[0_10px_20px_rgba(0,0,0,0.05),inset_0_-2px_0_rgba(0,0,0,0.05)] border border-slate-100">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    Username
-                  </label>
-                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="flex flex-col flex-1 h-full animate-in fade-in zoom-in-95 duration-300">
+              {/* Top Section: Inputs */}
+              <div className="space-y-3 shrink-0">
+                {/* Username Input */}
+                <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                    <User size={16} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase">Staff ID</label>
                     <input
-                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-semibold text-base"
-                      placeholder="Enter staff ID"
+                      className="w-full bg-transparent border-none p-0 text-slate-800 font-bold text-sm focus:ring-0 placeholder:text-slate-300 placeholder:font-normal"
+                      placeholder="Enter ID"
                       value={staffUsername}
                       onChange={(e) => setStaffUsername(e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                    Security PIN
-                  </label>
-                  <div className="flex justify-center gap-5">
+                {/* PIN Visualizer */}
+                <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center gap-2">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase">Security PIN</label>
+                  <div className="flex gap-4">
                     {[0, 1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className={`w-4 h-4 rounded-full transition-all duration-200 ${
+                        className={`w-3 h-3 rounded-full transition-all duration-200 ${
                           i < pin.length
-                            ? 'bg-[#0D9488] scale-110 shadow-[0_0_10px_rgba(13,148,136,0.5)]'
-                            : 'bg-slate-200 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)]'
+                            ? 'bg-[#0D9488] shadow-[0_0_8px_#0D9488]'
+                            : 'bg-slate-100 shadow-inner'
                         }`}
                       />
                     ))}
                   </div>
-                  <div className="text-center mt-3">
-                    <button className="text-xs font-bold text-[#0D9488]">Forgot PIN?</button>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Request a reset from Admin
-                    </p>
-                  </div>
                 </div>
               </div>
 
-              {/* Integrated Keypad */}
-              <div className="mt-auto grid grid-cols-3 gap-3 mb-4">
+              {/* Spacer to push keypad down */}
+              <div className="flex-1"></div>
+
+              {/* Integrated Keypad (Fills bottom space) */}
+              <div className="grid grid-cols-3 gap-2 mb-2 shrink-0">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                   <button
                     key={num}
                     onClick={() => handlePinPress(num.toString())}
-                    className="h-14 bg-white rounded-xl text-2xl font-medium text-slate-700 shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-b-2 border-slate-100 active:bg-slate-50 active:scale-95 active:border-b-0 transition-all"
+                    className="h-12 bg-white rounded-xl text-xl font-semibold text-slate-700 shadow-[0_2px_0_#e2e8f0] active:shadow-none active:translate-y-[2px] active:bg-slate-50 transition-all border border-slate-100"
                   >
                     {num}
                   </button>
                 ))}
+
+                {/* Delete Button */}
                 <button
                   onClick={handlePinDelete}
-                  className="h-14 flex items-center justify-center text-slate-400 active:text-slate-600 active:scale-95 transition-all"
+                  className="h-12 flex items-center justify-center text-slate-400 active:text-slate-600 active:scale-95 transition-all"
                 >
-                  <Delete size={24} />
+                  <Delete size={20} />
                 </button>
+
+                {/* Zero */}
                 <button
                   onClick={() => handlePinPress('0')}
-                  className="h-14 bg-white rounded-xl text-2xl font-medium text-slate-700 shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-b-2 border-slate-100 active:bg-slate-50 active:scale-95 active:border-b-0 transition-all"
+                  className="h-12 bg-white rounded-xl text-xl font-semibold text-slate-700 shadow-[0_2px_0_#e2e8f0] active:shadow-none active:translate-y-[2px] active:bg-slate-50 transition-all border border-slate-100"
                 >
                   0
                 </button>
 
-                {/* Action Button */}
+                {/* ACCESS BUTTON (Integrated into Grid) */}
                 <button
                   onClick={() => handleLogin()}
                   disabled={loading}
-                  className="h-14 bg-[#0D9488] text-white rounded-xl shadow-[0_4px_14px_rgba(13,148,136,0.4)] active:scale-95 transition-all font-bold text-sm flex items-center justify-center border-t border-white/20"
+                  className="h-12 bg-[#0D9488] text-white rounded-xl shadow-[0_2px_0_#0f766e] active:shadow-none active:translate-y-[2px] active:brightness-110 transition-all font-bold text-xs flex items-center justify-center"
                 >
-                  {loading ? '...' : 'ACCESS'}
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    'ENTER'
+                  )}
+                </button>
+              </div>
+
+              {/* Micro Footer */}
+              <div className="text-center pb-2">
+                <button className="text-[10px] font-medium text-slate-400 hover:text-[#0D9488]">
+                  Forgot Credentials?
                 </button>
               </div>
             </div>
           )}
 
-          {/* ADMIN VIEW */}
+          {/* ADMIN VIEW (Standard Form) */}
           {activeTab === 'admin' && (
-            <form onSubmit={handleLogin} className="flex flex-col flex-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="bg-white rounded-2xl p-6 space-y-5 mt-2 shadow-[0_10px_20px_rgba(0,0,0,0.05),inset_0_-2px_0_rgba(0,0,0,0.05)] border border-slate-100">
+            <form onSubmit={handleLogin} className="flex flex-col flex-1 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="bg-white rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-slate-100">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    Email
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+                    Email Address
                   </label>
-                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="email"
-                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-medium"
-                      placeholder="admin@somalipost.gov.so"
-                      value={adminEmail}
-                      onChange={(e) => setAdminEmail(e.target.value)}
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-3 bg-slate-50 rounded-xl border-none text-slate-900 focus:ring-2 focus:ring-[#1a3a44]/20 font-medium text-sm"
+                    placeholder="admin@somalipost.gov.so"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
                     Password
                   </label>
-                  <div className="relative bg-slate-50 rounded-xl border border-slate-100 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.03)]">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="password"
-                      className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 font-medium"
-                      placeholder="••••••••"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                    />
-                  </div>
-                  <div className="text-right mt-2">
-                    <button type="button" className="text-xs font-bold text-[#0D9488]">
-                      Forgot?
-                    </button>
-                  </div>
+                  <input
+                    type="password"
+                    className="w-full px-4 py-3 bg-slate-50 rounded-xl border-none text-slate-900 focus:ring-2 focus:ring-[#1a3a44]/20 font-medium text-sm"
+                    placeholder="********"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -255,35 +259,17 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 bg-[#1a3a44] text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(26,58,68,0.3)] active:scale-95 transition-all border-t border-white/10"
+                  className="w-full h-12 bg-[#1a3a44] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#1a3a44]/20 active:scale-95 transition-all"
                 >
-                  {loading ? (
-                    'Signing In...'
-                  ) : (
-                    <>
-                      Sign In <ArrowRight size={20} />
-                    </>
-                  )}
+                  {loading ? 'Verifying...' : 'Authenticate'}
                 </button>
+              </div>
+
+              <div className="mt-auto pb-4 text-center">
+                <p className="text-[10px] text-slate-300">System Version 2.4.0</p>
               </div>
             </form>
           )}
-
-          {/* Footer */}
-          <div className="mt-auto py-4 text-center shrink-0">
-            <div className="flex items-center justify-center gap-1.5 mb-2 opacity-60">
-              <ShieldCheck size={12} className="text-slate-400" />
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                Authorized personnel only
-              </p>
-            </div>
-            <div className="flex justify-center gap-3 text-[10px] text-slate-400 mb-1">
-              <span className="hover:text-[#0D9488] cursor-pointer">Privacy Policy</span>
-              <span className="text-slate-300">|</span>
-              <span className="hover:text-[#0D9488] cursor-pointer">Terms of Service</span>
-            </div>
-            <p className="text-[10px] text-slate-300">© Somali Post Operations</p>
-          </div>
         </div>
       </div>
 
