@@ -365,7 +365,7 @@ export default function ScanPage() {
     }
   };
 
-  const submitMobileQueue = async () => {
+  const submitMobileSession = async () => {
     if (mobileQueue.length === 0) {
       toast.warning('No photos to upload');
       return;
@@ -373,35 +373,23 @@ export default function ScanPage() {
 
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      const uploads = await Promise.all(
-        mobileQueue.map(async (item, index) => {
-          const blob = await fetch(item.img).then((res) => res.blob());
-          return { blob, index, type: item.type };
-        })
-      );
-
-      for (const upload of uploads) {
-        formData.append('images', upload.blob, `capture-${upload.index + 1}.jpg`);
-        formData.append(`types[${upload.index}]`, upload.type);
-      }
-
-      const res = await fetch('/api/scan/session', {
+      const res = await fetch('/api/scan/upload', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: mobileQueue }),
       });
 
       if (!res.ok) {
-        toast.error('Failed to upload session');
+        toast.error('Upload failed.');
         return;
       }
 
-      toast.success(`Uploaded ${mobileQueue.length} photo${mobileQueue.length === 1 ? '' : 's'}`);
+      toast.success('Upload Complete! Sent to Verification.');
       setMobileQueue([]);
       stopMobileCamera();
       setMobileState('IDLE');
     } catch (e) {
-      toast.error('Upload failed');
+      toast.error('Network Error');
     } finally {
       setIsSubmitting(false);
     }
@@ -936,7 +924,7 @@ export default function ScanPage() {
 
             <div className="p-6 border-t border-white/10 bg-black">
               <button
-                onClick={submitMobileQueue}
+                onClick={submitMobileSession}
                 disabled={mobileQueue.length === 0 || isSubmitting}
                 className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
