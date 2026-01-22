@@ -407,6 +407,14 @@ export default function ScanPage() {
     }
   };
 
+  const removeMobileItem = (index: number) => {
+    setMobileQueue((prev) => {
+      const next = [...prev];
+      next.splice(index, 1);
+      return next;
+    });
+  };
+
   useEffect(() => {
     if ((mobileState === 'BAG' || mobileState === 'ITEM') && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -431,6 +439,18 @@ export default function ScanPage() {
       document.body.classList.remove('hide-mobile-nav');
     };
   }, [mobileState]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (mobileQueue.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [mobileQueue]);
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -888,7 +908,7 @@ export default function ScanPage() {
               {mobileQueue.map((item, i) => (
                 <div
                   key={`${item.type}-${i}`}
-                  className="aspect-square bg-slate-800 rounded-lg overflow-hidden relative border border-white/10"
+                  className="aspect-square bg-slate-800 rounded-lg overflow-hidden relative border border-white/10 group"
                 >
                   <img src={item.img} className="w-full h-full object-cover" alt={`${item.type} capture`} />
                   <span
@@ -898,6 +918,13 @@ export default function ScanPage() {
                   >
                     {item.type.toUpperCase()}
                   </span>
+                  <button
+                    onClick={() => removeMobileItem(i)}
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md active:scale-95"
+                    aria-label="Delete capture"
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
               ))}
               {mobileQueue.length === 0 && (
