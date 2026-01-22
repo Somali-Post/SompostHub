@@ -18,7 +18,7 @@ const isStandaloneMode = () => {
 };
 
 type PwaInstallButtonProps = {
-  variant?: 'mobile' | 'desktop';
+  variant?: 'mobile' | 'desktop' | 'icon';
   className?: string;
   showWhenUnavailable?: boolean;
 };
@@ -86,6 +86,20 @@ export default function PwaInstallButton({
   const shouldRender =
     !isStandalone && !isDismissed && (isVisible || showWhenUnavailable);
   if (!shouldRender) return null;
+
+  if (variant === 'icon') {
+    if (!canInstall) return null;
+    return (
+      <button
+        type="button"
+        onClick={handleInstall}
+        aria-label="Install Somali Post Staff Hub"
+        className={`p-2 rounded-full bg-white/10 backdrop-blur-md text-white/80 hover:bg-white/20 transition-all active:scale-95 ${className}`}
+      >
+        <Download size={18} />
+      </button>
+    );
+  }
 
   const isMobile = variant === 'mobile';
   const containerClass = isMobile
