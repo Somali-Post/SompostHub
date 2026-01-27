@@ -1,15 +1,42 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { ConversationType, MessageType } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+
+const CONVERSATION_TYPES = ['DIRECT', 'GROUP'] as const;
+type ConversationType = (typeof CONVERSATION_TYPES)[number];
+
+const MESSAGE_TYPES = ['TEXT', 'AUDIO', 'IMAGE', 'VIDEO', 'DOCUMENT'] as const;
+type MessageType = (typeof MESSAGE_TYPES)[number];
+
+type ConversationRow = {
+  id: string;
+  type: ConversationType;
+  name: string | null;
+  avatar: string | null;
+  updatedAt: Date;
+  participants: Array<{
+    userId: string;
+    user: {
+      id: string;
+      fullName: string;
+      jobTitle: string | null;
+      avatar: string | null;
+    };
+  }>;
+  messages: Array<{
+    content: string | null;
+    fileUrl: string | null;
+    createdAt: Date;
+  }>;
+};
 
 export async function getConversations() {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
-  const convos = await prisma.conversation.findMany({
+  const convos = (await prisma.conversation.findMany({
     where: {
       participants: { some: { userId: session.id as string } },
     },
@@ -21,10 +48,10 @@ export async function getConversations() {
       },
     },
     orderBy: { updatedAt: 'desc' },
-  });
+  })) as ConversationRow[];
 
   return convos.map((convo) => {
-    const isGroup = convo.type === ConversationType.GROUP;
+    const isGroup = convo.type === 'GROUP';
     const otherParticipant = convo.participants.find(
       (participant) => participant.userId !== session.id
     )?.user;
@@ -64,8 +91,9 @@ export async function sendMessage(
   if (!session) throw new Error('Unauthorized');
 
   const normalizedType = type.toUpperCase();
-  const messageType =
-    normalizedType in MessageType ? (MessageType[normalizedType as keyof typeof MessageType] as MessageType) : MessageType.TEXT;
+  const messageType = MESSAGE_TYPES.includes(normalizedType as MessageType)
+    ? (normalizedType as MessageType)
+    : 'TEXT';
 
   await prisma.message.create({
     data: {
@@ -94,7 +122,7 @@ export async function createGroup(name: string, memberIds: string[]) {
 
   await prisma.conversation.create({
     data: {
-      type: ConversationType.GROUP,
+      type: 'GROUP',
       name,
       participants: {
         create: allMembers.map((id) => ({ userId: id })),
@@ -121,7 +149,7 @@ export async function createDirectChat(targetUserId: string) {
 
   const existing = await prisma.conversation.findFirst({
     where: {
-      type: ConversationType.DIRECT,
+      type: 'DIRECT',
       AND: [
         { participants: { some: { userId: session.id as string } } },
         { participants: { some: { userId: targetUserId } } },
@@ -133,7 +161,7 @@ export async function createDirectChat(targetUserId: string) {
 
   const newChat = await prisma.conversation.create({
     data: {
-      type: ConversationType.DIRECT,
+      type: 'DIRECT',
       participants: {
         create: [{ userId: session.id as string }, { userId: targetUserId }],
       },

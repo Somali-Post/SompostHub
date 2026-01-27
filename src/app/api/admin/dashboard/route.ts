@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { TaskStatus } from "@prisma/client";
 
 export async function GET() {
   try {
@@ -18,7 +17,7 @@ export async function GET() {
       await Promise.all([
         prisma.scan.count(),
         prisma.user.count({ where: { role: { not: "ADMIN" } } }),
-        prisma.task.count({ where: { status: TaskStatus.PENDING } }),
+        prisma.task.count({ where: { status: "PENDING" } }),
         prisma.scan.aggregate({ _sum: { weight: true } }),
         prisma.scan.findMany({
           take: 5,

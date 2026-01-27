@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { VerificationImageType, VerificationSessionStatus } from '@prisma/client';
+
+const VERIFICATION_IMAGE_TYPES = ['BAG', 'ITEM'] as const;
+type VerificationImageType = (typeof VERIFICATION_IMAGE_TYPES)[number];
 
 const toVerificationImageType = (value: string | null | undefined) => {
   const normalized = (value || '').toUpperCase();
-  return normalized in VerificationImageType
-    ? (VerificationImageType[normalized as keyof typeof VerificationImageType] as VerificationImageType)
-    : VerificationImageType.ITEM;
+  return VERIFICATION_IMAGE_TYPES.includes(normalized as VerificationImageType)
+    ? (normalized as VerificationImageType)
+    : 'ITEM';
 };
 
 export async function POST(req: Request) {
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
     const newSession = await prisma.verificationSession.create({
       data: {
         submitterId: session.id as string,
-        status: VerificationSessionStatus.PENDING,
+        status: 'PENDING',
         images: {
           create: images.map((img: any) => ({
             type: toVerificationImageType(img?.type),

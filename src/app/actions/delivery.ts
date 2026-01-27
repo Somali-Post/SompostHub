@@ -1,7 +1,6 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { ScanStatus } from '@prisma/client';
 import { logAction } from '@/lib/audit';
 import { revalidatePath } from 'next/cache';
 
@@ -18,7 +17,7 @@ export async function confirmDelivery(barcode: string, recipientName: string) {
   await prisma.scan.update({
     where: { id: item.id },
     data: {
-      status: ScanStatus.DELIVERED,
+      status: 'DELIVERED',
       deliveredTo: recipientName,
     },
   });

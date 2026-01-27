@@ -2,8 +2,17 @@ import { getNotifications, markAsRead, clearAllNotifications } from '@/app/actio
 import { AlertTriangle, Info, Trash2 } from 'lucide-react';
 import { NotificationButton } from './client-buttons';
 
+type NotificationRow = {
+  id: string;
+  title: string;
+  message: string;
+  type: 'INFO' | 'ALERT' | 'TASK' | 'SECURITY';
+  isRead: boolean;
+  createdAt: Date;
+};
+
 export default async function NotificationCenter() {
-  const notifications = await getNotifications();
+  const notifications = (await getNotifications()) as NotificationRow[];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (

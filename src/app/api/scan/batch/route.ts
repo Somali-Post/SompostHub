@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { ScanType } from "@prisma/client";
+
+const SCAN_TYPES = ["EMS", "PARCEL", "REGISTERED", "UNKNOWN", "BAG", "ITEM"] as const;
+type ScanType = (typeof SCAN_TYPES)[number];
 
 const toScanType = (value: string | null | undefined, fallback: ScanType) => {
   const normalized = (value || "").toUpperCase();
-  return normalized in ScanType
-    ? (ScanType[normalized as keyof typeof ScanType] as ScanType)
+  return SCAN_TYPES.includes(normalized as ScanType)
+    ? (normalized as ScanType)
     : fallback;
 };
 
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
     const scanData = items.map((item: any) => ({
       barcode: item.barcode,
       weight: parseFloat(item.weight),
-      type: toScanType(item.type, ScanType.UNKNOWN),
+      type: toScanType(item.type, "UNKNOWN"),
       origin: item.origin,
       scannerId,
     }));

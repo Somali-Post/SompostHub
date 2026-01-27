@@ -1,12 +1,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { TaskStatus } from '@prisma/client';
 
 export async function getDashboardStats() {
   const totalVolume = await prisma.scan.count();
   const totalStaff = await prisma.user.count({ where: { role: { not: 'ADMIN' } } });
-  const pendingTasks = await prisma.task.count({ where: { status: TaskStatus.PENDING } });
+  const pendingTasks = await prisma.task.count({ where: { status: 'PENDING' } });
 
   const weightAgg = await prisma.scan.aggregate({
     _sum: { weight: true },

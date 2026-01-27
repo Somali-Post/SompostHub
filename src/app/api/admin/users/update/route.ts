@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { UserRole } from '@prisma/client';
+
+const USER_ROLES = ['ADMIN', 'OFFICE_STAFF', 'DELIVERY'] as const;
+type UserRole = (typeof USER_ROLES)[number];
 
 export async function PUT(req: Request) {
   try {
@@ -19,8 +21,8 @@ export async function PUT(req: Request) {
 
     const roleKey = role ? String(role).toUpperCase() : '';
     const roleValue =
-      roleKey && roleKey in UserRole
-        ? (UserRole[roleKey as keyof typeof UserRole] as UserRole)
+      roleKey && USER_ROLES.includes(roleKey as UserRole)
+        ? (roleKey as UserRole)
         : undefined;
 
     const updatedUser = await prisma.user.update({
@@ -31,7 +33,7 @@ export async function PUT(req: Request) {
         role: roleValue,
         phone,
         jobTitle,
-        email: roleValue === UserRole.ADMIN ? `${username}@somalipost.gov.so` : undefined,
+        email: roleValue === 'ADMIN' ? `${username}@somalipost.gov.so` : undefined,
       },
     });
 

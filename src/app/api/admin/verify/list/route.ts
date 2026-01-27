@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { VerificationSessionStatus } from '@prisma/client';
 
 export async function GET() {
   const session = await getSession();
@@ -10,7 +9,7 @@ export async function GET() {
   }
 
   const sessions = await prisma.verificationSession.findMany({
-    where: { status: VerificationSessionStatus.PENDING },
+    where: { status: 'PENDING' },
     include: {
       submitter: true,
       images: true,

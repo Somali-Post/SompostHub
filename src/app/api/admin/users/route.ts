@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { getSession } from '@/lib/auth';
-import { UserRole } from '@prisma/client';
+
+const USER_ROLES = ['ADMIN', 'OFFICE_STAFF', 'DELIVERY'] as const;
+type UserRole = (typeof USER_ROLES)[number];
 
 const MASTER_ADMINS = ['Kal', 'Abs'];
 
@@ -17,14 +19,15 @@ export async function POST(req: Request) {
     const { fullName, username, role, phone, avatar } = body;
 
     const roleKey = String(role || '').toUpperCase();
-    const roleValue =
-      roleKey in UserRole ? (UserRole[roleKey as keyof typeof UserRole] as UserRole) : null;
+    const roleValue = USER_ROLES.includes(roleKey as UserRole)
+      ? (roleKey as UserRole)
+      : null;
 
     if (!roleValue) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
-    if (roleValue === UserRole.ADMIN) {
+    if (roleValue === 'ADMIN') {
       if (!MASTER_ADMINS.includes(session.username as string)) {
         return NextResponse.json(
           {
@@ -51,8 +54,8 @@ export async function POST(req: Request) {
         avatar,
         pin: defaultPinHash,
         pinMustChange: true,
-        jobTitle: roleValue === UserRole.ADMIN ? 'Administrator' : 'Staff Member',
-        email: roleValue === UserRole.ADMIN ? `${username}@somalipost.gov.so` : undefined,
+        jobTitle: roleValue === 'ADMIN' ? 'Administrator' : 'Staff Member',
+        email: roleValue === 'ADMIN' ? `${username}@somalipost.gov.so` : undefined,
       },
       select: {
         id: true,

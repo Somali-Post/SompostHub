@@ -1,10 +1,19 @@
 import { prisma } from '@/lib/prisma';
 
+type AuditLogRow = {
+  id: string;
+  createdAt: Date;
+  actorName: string;
+  actorRole: string;
+  action: string;
+  details: string;
+};
+
 export default async function AuditLogPage() {
-  const logs = await prisma.auditLog.findMany({
+  const logs = (await prisma.auditLog.findMany({
     orderBy: { createdAt: 'desc' },
     take: 50,
-  });
+  })) as AuditLogRow[];
 
   return (
     <div className="flex flex-col h-full overflow-y-auto p-6 md:p-8 gap-6">

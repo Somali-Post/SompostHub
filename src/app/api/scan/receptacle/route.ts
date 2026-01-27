@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { parseS9 } from '@/lib/s9';
 import { parseS10 } from '@/lib/upu';
-import { ReceptacleStatus, ScanType } from '@prisma/client';
+
+const SCAN_TYPES = ['EMS', 'PARCEL', 'REGISTERED', 'UNKNOWN', 'BAG', 'ITEM'] as const;
+type ScanType = (typeof SCAN_TYPES)[number];
 
 const toScanType = (value: string | null | undefined, fallback: ScanType) => {
   const normalized = (value || '').toUpperCase();
-  return normalized in ScanType
-    ? (ScanType[normalized as keyof typeof ScanType] as ScanType)
+  return SCAN_TYPES.includes(normalized as ScanType)
+    ? (normalized as ScanType)
     : fallback;
 };
 
@@ -42,21 +44,21 @@ export async function POST(req: Request) {
       return {
         barcode,
         weight: 0,
-        type: toScanType(parsed.type, ScanType.UNKNOWN),
+        type: toScanType(parsed.type, 'UNKNOWN'),
         origin: parsed.countryName || 'UNKNOWN',
         scannerId,
         receptacleId: s9.id,
       };
     });
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const bag = await tx.receptacle.create({
         data: {
           id: s9.id,
           originImpc: s9.origin,
           destImpc: s9.destination,
           weight: s9.weightKg,
-          status: ReceptacleStatus.CLOSED,
+          status: 'CLOSED',
           scannedById: scannerId,
         },
       });

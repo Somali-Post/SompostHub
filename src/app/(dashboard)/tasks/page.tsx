@@ -2,10 +2,16 @@ import { getTasks, createTask, toggleTask } from '@/app/actions/tasks';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { TaskCheckbox, CreateTaskForm } from './client-components';
 
-type TaskItem = Awaited<ReturnType<typeof getTasks>>[number];
+type TaskItem = {
+  id: string;
+  title: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  createdAt: Date;
+};
 
 export default async function TasksPage() {
-  const tasks = await getTasks();
+  const tasks = (await getTasks()) as TaskItem[];
 
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto p-6 md:p-8">

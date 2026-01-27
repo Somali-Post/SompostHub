@@ -1,9 +1,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { TaskPriority, TaskStatus } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+
+const TASK_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'] as const;
+type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
 export async function getTasks() {
   const session = await getSession();
@@ -22,10 +24,9 @@ export async function createTask(formData: FormData) {
   const title = formData.get('title') as string;
   const priorityInput = (formData.get('priority') as string) || 'MEDIUM';
   const priorityKey = priorityInput.toUpperCase();
-  const priority =
-    priorityKey in TaskPriority
-      ? (TaskPriority[priorityKey as keyof typeof TaskPriority] as TaskPriority)
-      : TaskPriority.MEDIUM;
+  const priority = TASK_PRIORITIES.includes(priorityKey as TaskPriority)
+    ? (priorityKey as TaskPriority)
+    : 'MEDIUM';
 
   if (!title) return;
 
@@ -33,7 +34,7 @@ export async function createTask(formData: FormData) {
     data: {
       title,
       priority,
-      status: TaskStatus.PENDING,
+      status: 'PENDING',
       dueDate: new Date(),
     },
   });
