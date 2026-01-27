@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from './sidebar';
 import Topbar from './topbar';
 import MobileNav from './mobile-nav';
@@ -10,12 +10,41 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 export default function DashboardLayoutClient({ children, user }: { children: React.ReactNode; user?: any }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [resolvedUser, setResolvedUser] = useState(user);
+
+    useEffect(() => {
+        setResolvedUser(user);
+    }, [user]);
+
+    useEffect(() => {
+        let isActive = true;
+
+        const loadProfile = async () => {
+            if (!user?.id) return;
+            try {
+                const res = await fetch('/api/me', { cache: 'no-store' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (isActive) {
+                    setResolvedUser(data);
+                }
+            } catch (error) {
+                console.error('PROFILE LOAD ERROR:', error);
+            }
+        };
+
+        loadProfile();
+
+        return () => {
+            isActive = false;
+        };
+    }, [user?.id]);
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
             {/* Desktop Sidebar */}
             <div className="hidden md:flex flex-col h-full shrink-0">
-                <Sidebar user={user} />
+                <Sidebar user={resolvedUser} />
             </div>
 
             <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
@@ -81,7 +110,7 @@ export default function DashboardLayoutClient({ children, user }: { children: Re
 
                                 {/* Reuse Sidebar but override styles to fit drawer */}
                                 <div className="flex-1 overflow-y-auto [&_aside]:!w-full [&_aside]:!h-full [&_aside]:!static [&_aside]:!bg-transparent [&_aside]:!shadow-none">
-                                    <Sidebar user={user} onNavigate={() => setMobileMenuOpen(false)} />
+                                    <Sidebar user={resolvedUser} onNavigate={() => setMobileMenuOpen(false)} />
                                 </div>
                             </div>
                         </motion.div>

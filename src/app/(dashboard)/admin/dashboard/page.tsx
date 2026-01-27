@@ -1,8 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { TrendingUp, Package, Users, CheckCircle, Clock } from 'lucide-react';
-import { getDashboardStats } from '@/app/actions/dashboard';
-import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 
 type StatCardProps = {
   title: string;
@@ -11,13 +11,71 @@ type StatCardProps = {
   icon: ReactNode;
 };
 
-export default async function AdminDashboard() {
-  const session = await getSession();
-  if (!session || session.role !== 'ADMIN') {
-    redirect('/chat');
-  }
+type RecentActivityItem = {
+  id: string;
+  barcode: string;
+  createdAt: string;
+  scanner: {
+    id: string;
+    fullName: string | null;
+    username: string;
+  } | null;
+};
 
-  const stats = await getDashboardStats();
+type DashboardStats = {
+  volume: number;
+  weight: string;
+  staff: number;
+  issues: number;
+  recentActivity: RecentActivityItem[];
+};
+
+const emptyStats: DashboardStats = {
+  volume: 0,
+  weight: '0.00',
+  staff: 0,
+  issues: 0,
+  recentActivity: [],
+};
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats>(emptyStats);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadStats = async () => {
+      try {
+        const res = await fetch('/api/admin/dashboard', { cache: 'no-store' });
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          throw new Error(payload?.error || 'Unable to load dashboard stats.');
+        }
+        const data = (await res.json()) as DashboardStats;
+        if (isActive) {
+          setStats(data);
+        }
+      } catch (err) {
+        if (isActive) {
+          const message =
+            err instanceof Error ? err.message : 'Unable to load dashboard stats.';
+          setError(message);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-6 w-full h-full overflow-y-auto p-6 md:p-8">
@@ -25,6 +83,9 @@ export default async function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-black text-slate-900">Operational Command</h1>
           <p className="text-slate-500">Real-time status overview.</p>
+          {error && (
+            <p className="text-xs text-rose-500 mt-2 font-semibold">Stats unavailable: {error}</p>
+          )}
         </div>
       </div>
 
@@ -58,7 +119,9 @@ export default async function AdminDashboard() {
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <h3 className="font-bold text-slate-800 mb-4">Live Activity Feed</h3>
         <div className="space-y-4">
-          {stats.recentActivity.length > 0 ? (
+          {isLoading ? (
+            <p className="text-sm text-slate-400">Loading activity...</p>
+          ) : stats.recentActivity.length > 0 ? (
             stats.recentActivity.map((scan) => (
               <div
                 key={scan.id}
@@ -73,7 +136,7 @@ export default async function AdminDashboard() {
                       Item Scanned: {scan.barcode}
                     </p>
                     <p className="text-xs text-slate-500">
-                      by {scan.scanner?.fullName || 'Unknown'}
+                      by {scan.scanner?.fullName || scan.scanner?.username || 'Unknown'}
                     </p>
                   </div>
                 </div>
